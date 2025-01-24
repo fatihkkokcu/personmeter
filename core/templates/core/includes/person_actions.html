@@ -1,0 +1,53 @@
+{% if user.is_authenticated %}
+    <div class="btn-group w-100" role="group">
+        <button type="button" 
+                class="btn btn-outline-primary favorite-btn" 
+                data-person-id="{{ person.pk }}"
+                data-is-favorite="{{ person.is_favorited_by_user|yesno:'true,false' }}">
+            <i class="bi {% if person.is_favorited_by_user %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            <span class="favorite-count">{{ person.favorited_by.count }}</span>
+        </button>
+        <button type="button" 
+                class="btn btn-outline-primary" 
+                data-bs-toggle="modal" 
+                data-bs-target="#collectionModal{{ person.pk }}">
+            <i class="bi bi-collection"></i> Add to Collection
+        </button>
+    </div>
+
+    <!-- Collection Modal -->
+    <div class="modal fade" id="collectionModal{{ person.pk }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add {{ person.name }} to Collection</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'add_to_collection' person.pk %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Select Collection:</label>
+                            <select name="collection" class="form-select" required>
+                                <option value="">Choose a collection...</option>
+                                {% for collection in user.collections.all %}
+                                    <option value="{{ collection.pk }}">{{ collection.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if not user.collections.exists %}
+                            <div class="alert alert-info">
+                                You don't have any collections yet. 
+                                <a href="{% url 'collection_create' %}" class="alert-link">Create one</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add to Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endif %} 

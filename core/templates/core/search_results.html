@@ -1,0 +1,133 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Search Results - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Advanced Search</h5>
+                <form method="get" action="{% url 'search' %}">
+                    <div class="mb-3">
+                        {{ form.q.label_tag }}
+                        {{ form.q }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.category.label_tag }}
+                        {{ form.category }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.tags.label_tag }}
+                        {{ form.tags }}
+                        <div class="form-text">Separate multiple tags with commas</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.min_rating.label_tag }}
+                        {{ form.min_rating }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.min_ratings_count.label_tag }}
+                        {{ form.min_ratings_count }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.sort_by.label_tag }}
+                        {{ form.sort_by }}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Search Results</h2>
+            <span class="text-muted">{{ total_results }} result{{ total_results|pluralize }}</span>
+        </div>
+
+        {% if page_obj %}
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for person in page_obj %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{% url 'person_detail' person.pk %}" class="text-decoration-none">
+                                        {{ person.name }}
+                                    </a>
+                                </h5>
+                                <p class="card-text">{{ person.description|truncatewords:30 }}</p>
+                                
+                                {% if person.category %}
+                                    <div class="mb-2">
+                                        <span class="badge bg-secondary">{{ person.category.name }}</span>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if person.get_tags_list %}
+                                    <div class="mb-2">
+                                        {% for tag in person.get_tags_list %}
+                                            <span class="badge bg-light text-dark">{{ tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-primary">{{ person.avg_rating|default:0|floatformat:1 }}/10</span>
+                                        <small class="text-muted">({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
+                                    </div>
+                                    <small class="text-muted">Added {{ person.created_at|timesince }} ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+                <nav class="mt-4" aria-label="Search results pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num == page_obj.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info">
+                No results found. Try adjusting your search criteria.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

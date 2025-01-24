@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Edit Profile - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Edit Profile</h2>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.bio.id_for_label }}" class="form-label">Bio</label>
+                        <textarea name="bio" class="form-control {% if form.bio.errors %}is-invalid{% endif %}"
+                                id="{{ form.bio.id_for_label }}" rows="4">{{ form.bio.value|default:'' }}</textarea>
+                        {% if form.bio.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.bio.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Tell us about yourself</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+                        <input type="text" name="location" class="form-control {% if form.location.errors %}is-invalid{% endif %}"
+                               id="{{ form.location.id_for_label }}" value="{{ form.location.value|default:'' }}">
+                        {% if form.location.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.location.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.birth_date.id_for_label }}" class="form-label">Birth Date</label>
+                        <input type="date" name="birth_date" class="form-control {% if form.birth_date.errors %}is-invalid{% endif %}"
+                               id="{{ form.birth_date.id_for_label }}" value="{{ form.birth_date.value|date:'Y-m-d'|default:'' }}">
+                        {% if form.birth_date.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.birth_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

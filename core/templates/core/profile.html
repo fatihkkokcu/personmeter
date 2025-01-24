@@ -1,0 +1,142 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ user.username }}'s Profile - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="card-title mb-0">{{ profile.user}}</h3>
+                    <a href="{% url 'profile_edit' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Edit Profile
+                    </a>
+                </div>
+                
+                {% if profile.bio %}
+                    <p class="card-text">{{ profile.bio }}</p>
+                {% endif %}
+                
+                <div class="mb-3">
+                    {% if profile.location %}
+                        <p class="mb-1">
+                            <i class="bi bi-geo-alt"></i> {{ profile.location }}
+                        </p>
+                    {% endif %}
+                    {% if profile.birth_date %}
+                        <p class="mb-1">
+                            <i class="bi bi-calendar"></i> Born {{ profile.birth_date|date:"F j, Y" }}
+                        </p>
+                    {% endif %}
+                    <p class="mb-1">
+                        <i class="bi bi-clock"></i> Joined {{ user.date_joined|date:"F j, Y" }}
+                    </p>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col">
+                        <h5>{{ profile.total_ratings }}</h5>
+                        <small class="text-muted">Ratings</small>
+                    </div>
+                    <div class="col">
+                        <h5>{{ favorites|length }}</h5>
+                        <small class="text-muted">Favorites</small>
+                    </div>
+                    <div class="col">
+                        <h5>{{ comments|length }}</h5>
+                        <small class="text-muted">Comments</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="ratings-tab" data-bs-toggle="tab" href="#ratings" role="tab">
+                    Recent Ratings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#comments" role="tab">
+                    Recent Comments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="favorites-tab" data-bs-toggle="tab" href="#favorites" role="tab">
+                    Favorites
+                </a>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="profileTabsContent">
+            <div class="tab-pane fade show active" id="ratings" role="tabpanel">
+                {% for rating in ratings %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <a href="{% url 'person_detail' rating.person.pk %}" class="text-decoration-none">
+                                        {{ rating.person.name }}
+                                    </a>
+                                </h5>
+                                <span class="badge bg-primary">{{ rating.score }}/10</span>
+                            </div>
+                            <small class="text-muted">Rated {{ rating.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No ratings yet.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="tab-pane fade" id="comments" role="tabpanel">
+                {% for comment in comments %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'person_detail' comment.person.pk %}" class="text-decoration-none">
+                                    {{ comment.person.name }}
+                                </a>
+                            </h5>
+                            <p class="card-text">{{ comment.content }}</p>
+                            <small class="text-muted">Commented {{ comment.created_at|timesince }} ago</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No comments yet.</p>
+                {% endfor %}
+            </div>
+            
+            <div class="tab-pane fade" id="favorites" role="tabpanel">
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for favorite in favorites %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <a href="{% url 'person_detail' favorite.person.pk %}" class="text-decoration-none">
+                                            {{ favorite.person.name }}
+                                        </a>
+                                    </h5>
+                                    <p class="card-text">{{ favorite.person.description|truncatewords:30 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary">{{ favorite.person.average_rating|floatformat:1 }}/10</span>
+                                        <small class="text-muted">Added {{ favorite.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col">
+                            <p>No favorites yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

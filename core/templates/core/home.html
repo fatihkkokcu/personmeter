@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+
+{% block title %}PersonMeter - Rate and Discuss People{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-light p-5 rounded-3 mb-4">
+    <h1 class="display-4">Welcome to PersonMeter</h1>
+    <p class="lead">Rate and discuss about people, similar to IMDB's rating system.</p>
+    <hr class="my-4">
+    <p>Join our community to rate and review people, create collections, and discover trending personalities.</p>
+    {% if not user.is_authenticated %}
+        <a class="btn btn-primary btn-lg" href="{% url 'register' %}">Join Now</a>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Categories</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'home' %}" class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">
+                        All Categories
+                    </a>
+                    {% for cat in categories %}
+                        <a href="{% url 'home' %}?category={{ cat.id }}" 
+                           class="list-group-item list-group-item-action {% if selected_category == cat.id %}active{% endif %}">
+                            {{ cat.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <h2 class="mb-4">Trending People</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for person in trending_persons %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ person.name }}</h5>
+                            {% if person.category %}
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary">{{ person.category.name }}</span>
+                                </div>
+                            {% endif %}
+                            <p class="card-text">{{ person.description|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary">{{ person.average_rating|floatformat:1 }}/10</span>
+                                    <small class="text-muted">({{ person.total_ratings }} ratings)</small>
+                                </div>
+                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <p>No trending people yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="mb-4">Recently Added</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for person in recent_persons %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ person.name }}</h5>
+                            {% if person.category %}
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary">{{ person.category.name }}</span>
+                                </div>
+                            {% endif %}
+                            <p class="card-text">{{ person.description|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary">{{ person.average_rating|floatformat:1 }}/10</span>
+                                    <small class="text-muted">({{ person.total_ratings }} ratings)</small>
+                                </div>
+                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <p>No people added yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="mb-4">Top Rated</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for person in top_rated %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ person.name }}</h5>
+                            <p class="card-text">{{ person.description|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary">{{ person.average_rating|floatformat:1 }}/10</span>
+                                    <small class="text-muted">({{ person.total_ratings }} ratings)</small>
+                                </div>
+                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col">
+                    <p>No top rated people yet.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Delete Collection - {{ collection.title }} - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Delete Collection</h2>
+                
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">Warning!</h5>
+                    <p>Are you sure you want to delete the collection "{{ collection.title }}"?</p>
+                    <hr>
+                    <p class="mb-0">This action cannot be undone. All items in this collection will be removed.</p>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">Collection Details</h6>
+                        <p class="card-text">{{ collection.description }}</p>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Items:</strong> {{ collection.total_items }}</li>
+                            <li><strong>Created:</strong> {{ collection.created_at|date:"F j, Y" }}</li>
+                            <li><strong>Visibility:</strong> {% if collection.is_public %}Public{% else %}Private{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'collection_detail' collection.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Delete Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

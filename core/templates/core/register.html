@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Register - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Create an Account</h2>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                               id="{{ form.username.id_for_label }}" required value="{{ form.username.value|default:'' }}">
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.username.help_text }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                               id="{{ form.email.id_for_label }}" required value="{{ form.email.value|default:'' }}">
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                        <input type="password" name="password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                               id="{{ form.password1.id_for_label }}" required>
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password1.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">{{ form.password1.help_text }}</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                        <input type="password" name="password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                               id="{{ form.password2.id_for_label }}" required>
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.password2.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

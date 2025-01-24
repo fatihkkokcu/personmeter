@@ -1,0 +1,165 @@
+{% extends 'core/base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Edit {{ form.instance.name }}
+    {% else %}
+        Add New Person
+    {% endif %}
+    - PersonMeter
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">
+                    {% if form.instance.pk %}
+                        Edit {{ form.instance.name }}
+                    {% else %}
+                        Add New Person
+                    {% endif %}
+                </h2>
+                
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">Profile Image</label>
+                        <div class="image-preview-container mb-3" style="display: none;">
+                            <img id="imagePreview" src="#" alt="Image Preview" class="img-thumbnail" style="max-height: 200px;">
+                            <button type="button" class="btn btn-sm btn-danger mt-2" id="removeImage">Remove Image</button>
+                        </div>
+                        {% if form.instance.image %}
+                            <div class="mb-2" id="existingImage">
+                                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
+                        {% endif %}
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.image.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.category.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.tags.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Enter tags separated by commas (e.g., actor, director, writer)</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'person_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}
+                                Save Changes
+                            {% else %}
+                                Add Person
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.querySelector('input[type="file"]');
+    const imagePreviewContainer = document.querySelector('.image-preview-container');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeImageBtn = document.getElementById('removeImage');
+    const existingImage = document.getElementById('existingImage');
+
+    function showPreview(file) {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';
+                if (existingImage) {
+                    existingImage.style.display = 'none';
+                }
+            }
+            reader.readAsDataURL(file);
+        } else {
+            imagePreviewContainer.style.display = 'none';
+            if (existingImage) {
+                existingImage.style.display = 'block';
+            }
+        }
+    }
+
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        showPreview(file);
+    });
+
+    removeImageBtn.addEventListener('click', function() {
+        imageInput.value = '';
+        imagePreviewContainer.style.display = 'none';
+        if (existingImage) {
+            existingImage.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %} 

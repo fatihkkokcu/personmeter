@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Collections - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Collections</h1>
+    {% if user.is_authenticated %}
+        <div>
+            <a href="{% url 'user_collections' %}" class="btn btn-outline-primary me-2">My Collections</a>
+            <a href="{% url 'collection_create' %}" class="btn btn-primary">Create Collection</a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for collection in collections %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            <a href="{% url 'collection_detail' collection.pk %}" class="text-decoration-none">
+                                {{ collection.title }}
+                            </a>
+                        </h5>
+                        {% if not collection.is_public %}
+                            <span class="badge bg-secondary">Private</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text">{{ collection.description|truncatewords:30 }}</p>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            Created by {{ collection.created_by.username }}
+                            {{ collection.created_at|timesince }} ago
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary">{{ collection.average_rating|floatformat:1 }}/10</span>
+                            <small class="text-muted">
+                                ({{ collection.total_ratings }} rating{{ collection.total_ratings|pluralize }})
+                            </small>
+                        </div>
+                        <small class="text-muted">{{ collection.total_items }} item{{ collection.total_items|pluralize }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No collections found.
+                {% if user.is_authenticated %}
+                    <a href="{% url 'collection_create' %}">Create the first one!</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+    <nav class="mt-4" aria-label="Collection pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %} 

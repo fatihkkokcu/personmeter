@@ -1,0 +1,128 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Search Results - PersonMeter{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Filters</h5>
+                    <form method="get" action="{% url 'search' %}" id="searchForm">
+                        {% if query %}
+                            <input type="hidden" name="q" value="{{ query }}">
+                        {% endif %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Search Results{% if query %} for "{{ query }}"{% endif %}</h1>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        Sort by: {{ sort_by|default:"Newest"|title }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item {% if sort_by == '-created_at' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=-created_at">Newest</a></li>
+                        <li><a class="dropdown-item {% if sort_by == 'name' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=name">Name (A-Z)</a></li>
+                        <li><a class="dropdown-item {% if sort_by == '-avg_rating' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=-avg_rating">Highest Rated</a></li>
+                        <li><a class="dropdown-item {% if sort_by == '-rating_count' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=-rating_count">Most Rated</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for person in page_obj %}
+                    <div class="col">
+                        <div class="card h-100">
+                            {% if person.image %}
+                                <img src="{{ person.image.url }}" class="card-img-top" alt="{{ person.name }}">
+                            {% else %}
+                                <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ person.name }}</h5>
+                                <p class="card-text text-muted">
+                                    {% if person.avg_rating %}
+                                        <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}/5
+                                        <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
+                                    {% else %}
+                                        <small>No ratings yet</small>
+                                    {% endif %}
+                                </p>
+                                <p class="card-text">{{ person.description|truncatewords:20 }}</p>
+                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
+                                {% include 'core/includes/person_actions.html' %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            No results found{% if query %} for "{{ query }}"{% endif %}.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% include 'core/includes/pagination.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle favorite button clicks
+    document.querySelectorAll('.favorite-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const personId = this.dataset.personId;
+            const isFavorite = this.dataset.isFavorite === 'true';
+            const icon = this.querySelector('i');
+            const countSpan = this.querySelector('.favorite-count');
+
+            fetch(`/person/${personId}/favorite/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorite) {
+                    icon.classList.remove('bi-heart');
+                    icon.classList.add('bi-heart-fill');
+                    this.dataset.isFavorite = 'true';
+                } else {
+                    icon.classList.remove('bi-heart-fill');
+                    icon.classList.add('bi-heart');
+                    this.dataset.isFavorite = 'false';
+                }
+                countSpan.textContent = data.total_favorites;
+                showToast(`${data.is_favorite ? 'Added to' : 'Removed from'} favorites`);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error updating favorite status', 'danger');
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 
