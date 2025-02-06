@@ -32,11 +32,15 @@ def home(request):
     
     # Get trending persons
     trending_persons = persons_query.annotate(
-        rating_count=Count('ratings')
+        rating_count=Count('ratings'),
+        avg_rating=Avg('ratings__score')
     ).filter(rating_count__gt=0).order_by('-rating_count')[:6]
     
     # Get recent persons
-    recent_persons = persons_query.order_by('-created_at')[:6]
+    recent_persons = persons_query.annotate(
+        rating_count=Count('ratings'),
+        avg_rating=Avg('ratings__score')
+    ).order_by('-created_at')[:6]
     
     # Get top rated persons
     top_rated = persons_query.annotate(
@@ -48,6 +52,13 @@ def home(request):
     categories = Category.objects.annotate(
         person_count=Count('persons')
     ).filter(person_count__gt=0).order_by('name')
+    
+    # Add favorite information for authenticated users
+    if request.user.is_authenticated:
+        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
+        for persons in [trending_persons, recent_persons, top_rated]:
+            for person in persons:
+                person.is_favorited_by_user = person.id in user_favorites
     
     context = {
         'trending_persons': trending_persons,
@@ -161,6 +172,19 @@ def search(request):
         )
     
     if form.is_valid():
+        # Handle category filter
+        category = form.cleaned_data.get('category')
+        if category:
+            persons = persons.filter(category=category)
+            
+        # Handle tags filter
+        tags = form.cleaned_data.get('tags')
+        if tags:
+            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            for tag in tag_list:
+                persons = persons.filter(tags__icontains=tag)
+        
+        # Handle rating filters
         min_rating = form.cleaned_data.get('min_rating')
         max_rating = form.cleaned_data.get('max_rating')
         min_ratings = form.cleaned_data.get('min_ratings')
@@ -171,10 +195,13 @@ def search(request):
             persons = persons.filter(avg_rating__lte=max_rating)
         if min_ratings is not None:
             persons = persons.filter(rating_count__gte=min_ratings)
-    
+        # Handle minimum ratings count
+        min_ratings_count = form.cleaned_data.get('min_ratings_count')
+        if min_ratings_count is not None:
+            persons = persons.filter(rating_count__gte=min_ratings_count)
     # Order results
     sort_by = request.GET.get('sort', '-created_at')
-    if sort_by in ['-created_at', 'name', '-avg_rating', '-rating_count']:
+    if sort_by in ['-created_at', 'created_at', 'name', '-name', '-avg_rating', 'avg_rating', '-rating_count']:
         persons = persons.order_by(sort_by)
     
     # Add favorite information for authenticated users
@@ -382,7 +409,7 @@ class PersonUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def test_func(self):
         person = self.get_object()
-        return person.created_by == self.request.user
+        return self.request.user.is_superuser or person.created_by == self.request.user
 
     def get_success_url(self):
         return reverse_lazy('person_detail', kwargs={'pk': self.object.pk})

@@ -8,7 +8,7 @@
     <div class="row">
         <!-- Filters Sidebar -->
         <div class="col-md-3 mb-4">
-            <div class="card">
+            <div class="card border-dark-subtle">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Filters</h5>
                     <form method="get" action="{% url 'search' %}" id="searchForm">
@@ -27,28 +27,45 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Search Results{% if query %} for "{{ query }}"{% endif %}</h1>
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        Sort by: {{ sort_by|default:"Newest"|title }}
+                    <button id="filterButton" class="btn btn-outline-dark dropdown-toggle border-dark-subtle" type="button" data-bs-toggle="dropdown" style="--bs-btn-hover-bg: #1E1E1E; --bs-btn-active-bg: #1E1E1E;">
+                        <span class="dropdown-text">
+                            {% if sort_by == '-created_at' %}Newest{% endif %}
+                            {% if sort_by == 'created_at' %}Oldest{% endif %}
+                            {% if sort_by == 'name' %}Name (A-Z){% endif %}
+                            {% if sort_by == '-name' %}Name (Z-A){% endif %}
+                            {% if sort_by == '-avg_rating' %}Highest Rated{% endif %}
+                            {% if sort_by == 'avg_rating' %}Lowest Rated{% endif %}
+                            {% if sort_by == '-rating_count' %}Most Rated{% endif %}
+                        </span>
                     </button>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item {% if sort_by == '-created_at' %}active{% endif %}" 
                             href="?{% if query %}q={{ query }}&{% endif %}sort=-created_at">Newest</a></li>
+                        <li><a class="dropdown-item {% if sort_by == 'created_at' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=created_at">Oldest</a></li>
                         <li><a class="dropdown-item {% if sort_by == 'name' %}active{% endif %}" 
                             href="?{% if query %}q={{ query }}&{% endif %}sort=name">Name (A-Z)</a></li>
+                        <li><a class="dropdown-item {% if sort_by == '-name' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=-name">Name (Z-A)</a></li>
                         <li><a class="dropdown-item {% if sort_by == '-avg_rating' %}active{% endif %}" 
                             href="?{% if query %}q={{ query }}&{% endif %}sort=-avg_rating">Highest Rated</a></li>
+                        <li><a class="dropdown-item {% if sort_by == 'avg_rating' %}active{% endif %}" 
+                            href="?{% if query %}q={{ query }}&{% endif %}sort=avg_rating">Lowest Rated</a></li>
                         <li><a class="dropdown-item {% if sort_by == '-rating_count' %}active{% endif %}" 
                             href="?{% if query %}q={{ query }}&{% endif %}sort=-rating_count">Most Rated</a></li>
                     </ul>
                 </div>
             </div>
 
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
                 {% for person in page_obj %}
                     <div class="col">
-                        <div class="card h-100">
+                        <div class="card h-100 border-dark-subtle" style="overflow: hidden;">
                             {% if person.image %}
-                                <img src="{{ person.image.url }}" class="card-img-top" alt="{{ person.name }}">
+                                <div style="position: relative; height: 200px; overflow: hidden;">
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.image.url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
+                                    <img src="{{ person.image.url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
+                                </div>
                             {% else %}
                                 <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
@@ -58,7 +75,7 @@
                                 <h5 class="card-title">{{ person.name }}</h5>
                                 <p class="card-text text-muted">
                                     {% if person.avg_rating %}
-                                        <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}/5
+                                        <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
                                         <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
                                     {% else %}
                                         <small>No ratings yet</small>

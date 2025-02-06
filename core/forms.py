@@ -53,20 +53,6 @@ class AdvancedSearchForm(forms.Form):
             'placeholder': 'Minimum number of ratings'
         })
     )
-    sort_by = forms.ChoiceField(
-        choices=[
-            ('-created_at', 'Newest first'),
-            ('created_at', 'Oldest first'),
-            ('-avg_rating', 'Highest rated'),
-            ('avg_rating', 'Lowest rated'),
-            ('-rating_count', 'Most rated'),
-            ('name', 'Name (A-Z)'),
-            ('-name', 'Name (Z-A)'),
-        ],
-        required=False,
-        initial='-created_at',
-        widget=forms.Select(attrs={'class': 'form-select'})
-    ) 
 
 class CollectionForm(forms.ModelForm):
     class Meta:

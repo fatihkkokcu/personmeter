@@ -3,77 +3,82 @@
 {% block title %}{{ person.name }} - PersonMeter{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row mt-3">
     <div class="col-md-8">
-        <div class="row mb-4">
-            <div class="col-md-4">
-                {% if person.image %}
-                    <img src="{{ person.image.url }}" alt="{{ person.name }}" class="img-fluid rounded" style="max-width: 100%; max-height: 400px; object-fit: contain;">
-                {% endif %}
-            </div>
-            <div class="col-md-8">
-                <h1 class="mb-3">{{ person.name }}</h1>
-                <p class="lead">{{ person.description }}</p>
+        <div class="card mb-4 border-dark-subtle">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        {% if person.image %}
+                            <img src="{{ person.image.url }}" alt="{{ person.name }}" class="img-fluid rounded mx-auto d-block border border-dark-subtle" style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <h1 class="card-title mb-3">{{ person.name }}</h1>
+                        <p class="card-text lead">{{ person.description }}</p>
+                        <div class="d-flex">
+                            <div class="display-4 me-3 text-muted">
+                                <i class="bi bi-star-fill text-warning"></i>
+                            </div>
+                            <div class="d-block text-muted text-center">
+                                <div class="display-4" style="margin-bottom: -8px;">{{ stats.average_rating|floatformat:1 }}</div>
+                                <small>{{ stats.total_ratings }} ratings</small>
+                            </div>
+                            <div class="d-block ms-auto mt-auto me-4">
+                            {% if user.is_authenticated %}
+                                <form action="{% url 'rate_person' person.pk %}" method="post" class="mb-3">
+                                    {% csrf_token %}
+                                    <div class="input-group" style="width: 200px;">
+                                        <select name="score" class="form-select" required>
+                                            <option value="">Select rating</option>
+                                            {% for i in "123456789"|make_list %}
+                                                <option value="{{ i }}" {% if user_rating.score == i|add:"0" %}selected{% endif %}>{{ i }}</option>
+                                            {% endfor %}
+                                            <option value="10" {% if user_rating.score == 10 %}selected{% endif %}>10</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary">Rate</button>
+                                    </div>
+                                </form>
+                            {% else %}
+                                <p><a href="{% url 'login' %}">Log in</a> to rate this person.</p>
+                            {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         
         <!-- Rating Statistics -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
-                <h5 class="card-title">Rating Statistics</h5>
-                <div class="d-flex align-items-center mb-4">
-                    <div class="display-4 me-3">{{ stats.average_rating|floatformat:1 }}<small>/10</small></div>
-                    <div>
-                        <div class="text-muted">Based on {{ stats.total_ratings }} ratings</div>
-                        {% if user.is_authenticated %}
-                            {% if user_rating %}
-                                <div>Your rating: {{ user_rating.score }}/10</div>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-                
+                <h5 class="card-title">Rating Distribution</h5>
                 <!-- Rating Distribution -->
-                <h6>Rating Distribution</h6>
                 <div class="mb-4">
                     {% for score, data in rating_distribution.items %}
                         <div class="mb-2">
                             <div class="d-flex justify-content-between mb-1">
-                                <small>{{ score }}/10</small>
+                                <small>{{ score }}</small>
                                 <small>{{ data.count }} rating{{ data.count|pluralize }}</small>
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar" role="progressbar" 
-                                     style="width: {{ data.percentage }}%;" 
+                                     style="width: {{ data.percentage }}%" 
                                      aria-valuenow="{{ data.percentage }}" 
                                      aria-valuemin="0" aria-valuemax="100"></div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
-                
-                {% if user.is_authenticated %}
-                    <form action="{% url 'rate_person' person.pk %}" method="post" class="mb-3">
-                        {% csrf_token %}
-                        <div class="input-group">
-                            <select name="score" class="form-select" required>
-                                <option value="">Select rating</option>
-                                {% for i in "123456789"|make_list %}
-                                    <option value="{{ i }}" {% if user_rating.score == i|add:"0" %}selected{% endif %}>{{ i }}/10</option>
-                                {% endfor %}
-                                <option value="10" {% if user_rating.score == 10 %}selected{% endif %}>10/10</option>
-                            </select>
-                            <button type="submit" class="btn btn-primary">Rate</button>
-                        </div>
-                    </form>
-                {% else %}
-                    <p><a href="{% url 'login' %}">Log in</a> to rate this person.</p>
-                {% endif %}
             </div>
         </div>
 
         <!-- Rating Trend -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title">Rating Trend (Last 30 Days)</h5>
                 <div class="table-responsive">
@@ -89,7 +94,7 @@
                             {% for day in rating_trend %}
                                 <tr>
                                     <td>{{ day.created_at__date|date:"M j" }}</td>
-                                    <td>{{ day.avg_score|floatformat:1 }}/10</td>
+                                    <td>{{ day.avg_score|floatformat:1 }}</td>
                                     <td>{{ day.count }}</td>
                                 </tr>
                             {% empty %}
@@ -104,7 +109,7 @@
         </div>
 
         <!-- Comments Section -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title mb-4">Comments ({{ stats.total_comments }})</h5>
                 
@@ -121,14 +126,14 @@
                 {% endif %}
 
                 {% for comment in comments_page %}
-                    <div class="mb-3 pb-3 border-bottom">
+                    <div class="mb-3 ms-1 pb-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <strong>{{ comment.user.username }}</strong>
                                 <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
                             </div>
                         </div>
-                        <p class="mb-0">{{ comment.content }}</p>
+                        <p class="mb-0 ms-2">{{ comment.content }}</p>
                     </div>
                 {% empty %}
                     <p>No comments yet.</p>
@@ -163,13 +168,13 @@
 
     <div class="col-md-4">
         <!-- Basic Information -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title">Information</h5>
                 <p class="mb-1"><strong>Category:</strong> {{ person.category.name|default:"Uncategorized" }}</p>
                 {% if person.get_tags_list %}
                     <p class="mb-1">
-                        <strong>Tags:</strong><br>
+                        <strong>Tags:</strong>
                         {% for tag in person.get_tags_list %}
                             <span class="badge bg-secondary me-1">{{ tag }}</span>
                         {% endfor %}
@@ -190,7 +195,7 @@
         </div>
 
         <!-- Demographics -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title">Demographics</h5>
                 
@@ -199,9 +204,9 @@
                     {% for location in demographics.locations %}
                         <div class="list-group-item d-flex justify-content-between align-items-center">
                             <div>{{ location.user__profile__location }}</div>
-                            <div>
-                                <span class="badge bg-primary">{{ location.avg_rating|floatformat:1 }}</span>
-                                <small class="text-muted">({{ location.count }})</small>
+                            <div class="text-end text-muted">
+                                <i class="bi bi-star-fill text-warning"></i> {{ location.avg_rating|floatformat:1 }}
+                                <small>({{ location.count }})</small>
                             </div>
                         </div>
                     {% empty %}
@@ -212,7 +217,7 @@
         </div>
 
         <!-- Similar Persons -->
-        <div class="card mb-4">
+        <div class="card mb-4 border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title">Similar People</h5>
                 <div class="list-group list-group-flush">
@@ -223,7 +228,9 @@
                                     <h6 class="mb-1">{{ similar.name }}</h6>
                                     <small class="text-muted">{{ similar.common_raters }} common raters</small>
                                 </div>
-                                <span class="badge bg-primary">{{ similar.avg_rating|floatformat:1 }}</span>
+                                <div class="text-end text-muted">
+                                    <i class="bi bi-star-fill text-warning"></i> {{ similar.avg_rating|floatformat:1 }}
+                                </div>
                             </div>
                         </a>
                     {% empty %}
@@ -234,7 +241,7 @@
         </div>
 
         <!-- Collections -->
-        <div class="card">
+        <div class="card border-dark-subtle">
             <div class="card-body">
                 <h5 class="card-title">Featured in Collections</h5>
                 <p class="text-muted small mb-3">

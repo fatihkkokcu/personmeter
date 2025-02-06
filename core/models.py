@@ -35,34 +35,37 @@ class Person(models.Model):
         super().save(*args, **kwargs)
         
         if self.image:
-            img = Image.open(self.image.path)
-            if img.mode in ('RGBA', 'LA'):
-                background = Image.new('RGB', img.size, 'WHITE')
-                background.paste(img, mask=img.split()[-1])
-                img = background
+            from django.core.files.storage import default_storage
+            from django.core.files import File
             
-            # Calculate aspect ratio
-            target_width = 250
-            target_height = 200
-            original_width, original_height = img.size
-            
-            # Calculate dimensions to maintain aspect ratio
-            ratio = min(target_width/original_width, target_height/original_height)
-            new_width = int(original_width * ratio)
-            new_height = int(original_height * ratio)
-            
-            # Resize image
-            img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            
-            # Create new image with white background
-            new_img = Image.new('RGB', (target_width, target_height), 'WHITE')
-            # Paste resized image in center
-            paste_x = (target_width - new_width) // 2
-            paste_y = (target_height - new_height) // 2
-            new_img.paste(img, (paste_x, paste_y))
-            
-            # Save the processed image
-            new_img.save(self.image.path, quality=90, optimize=True)
+            # Open the image using a temporary file
+            with self.image.open('rb') as img_file:
+                img = Image.open(img_file)
+                
+                # Convert RGBA/LA to RGB if necessary
+                if img.mode in ('RGBA', 'LA'):
+                    background = Image.new('RGB', img.size, 'WHITE')
+                    background.paste(img, mask=img.split()[-1])
+                    img = background
+                
+                # Save the processed image to a temporary file
+                import tempfile
+                temp_file = tempfile.NamedTemporaryFile(delete=False)
+                try:
+                    img.save(temp_file.name, 'JPEG', quality=100)
+                    
+                    # Save the processed image back to storage
+                    with open(temp_file.name, 'rb') as processed_file:
+                        self.image.save(
+                            self.image.name,
+                            File(processed_file),
+                            save=False
+                        )
+                finally:
+                    temp_file.close()
+                    import os
+                    if os.path.exists(temp_file.name):
+                        os.unlink(temp_file.name)
 
     def average_rating(self):
         return self.ratings.aggregate(Avg('score'))['score__avg'] or 0.0

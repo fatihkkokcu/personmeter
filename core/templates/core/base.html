@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}PersonMeter{% endblock %}</title>
+    <link rel="icon" type="image/png" href="../../../../../media/logo/logo.png">
+    <title>{% block title %}Personmeter{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -21,12 +22,33 @@
             right: 20px;
             z-index: 9999;
         }
+        [data-bs-theme="dark"] body {
+            background-color: #111111;
+        }
+        [data-bs-theme="dark"] .card {
+            background-color: #212529;
+        }
+        [data-bs-theme="dark"] .list-group-item {
+            background-color: #212529;
+        }
+        [data-bs-theme="dark"] .list-group-item.active {
+            background-color: var(--bs-primary);
+        }
+        [data-bs-theme="dark"] #filterButton {
+            background-color: #212529;
+            color: #adb5bd;
+        }
+        [data-bs-theme="light"] body {
+            background-color: #ebebeb;
+        }
     </style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top border-bottom border-dark-subtle" style="background-color: #1E1E1E;">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">PersonMeter</a>
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <img src="../../../../../media/logo/logo.png" height="38" alt="Personmeter">
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -43,21 +65,25 @@
                     </li>
                 </ul>
                 <form class="d-flex" action="{% url 'search' %}" method="get">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Search people...">
-                    <button class="btn btn-outline-light" type="submit">Search</button>
+                    <input class="form-control me-2 border border-dark-subtle" type="search" name="q" placeholder="Search people...">
+                    <button class="btn btn-outline-light border border-dark-subtle" type="submit">Search</button>
                 </form>
-                <ul class="navbar-nav ms-3">
+                <ul class="navbar-nav ms-2 align-items-center">
                     <li class="nav-item">
-                        <button class="btn btn-outline-light" id="themeToggle">
+                        <button class="btn btn-outline-light border border-dark-subtle" id="themeToggle">
                             <i class="bi bi-moon-stars"></i>
                         </button>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile' %}">Profile</a>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-outline-light border border-dark-subtle" href="{% url 'profile' %}">
+                                <i class="bi bi-person-circle"></i>
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-outline-light border border-dark-subtle" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -80,26 +106,26 @@
 
     <div class="toast-container"></div>
 
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-        
-        {% block content %}
-        {% endblock %}
-    </div>
+        <div class="container mt-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
 
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="text-light py-4 mt-auto" style="background-color: #1E1E1E;">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>PersonMeter</h5>
-                    <p>Rate and discuss about people, similar to IMDB's rating system.</p>
+                <div class="text-center">
+                    <h5>Personmeter</h5>
+                    <h6>2025</h6>
                 </div>
             </div>
         </div>
@@ -162,4 +188,4 @@
     </script>
     {% block extra_js %}{% endblock %}
 </body>
-</html> 
+</html>
