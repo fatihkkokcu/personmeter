@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{ person.name }} - PersonMeter{% endblock %}
+{% block title %}{{ person.name }} - Personmeter{% endblock %}
 
 {% block content %}
 <div class="row mt-3">
@@ -10,7 +10,7 @@
                 <div class="row">
                     <div class="col-md-3">
                         {% if person.image %}
-                            <img src="{{ person.image.url }}" alt="{{ person.name }}" class="img-fluid rounded mx-auto d-block border border-dark-subtle" style="height: 200px; object-fit: cover;">
+                            <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="img-fluid rounded mx-auto d-block border border-dark-subtle" style="height: 200px; object-fit: cover;">
                         {% else %}
                             <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
                                 <i class="bi bi-person-circle" style="font-size: 4rem;"></i>

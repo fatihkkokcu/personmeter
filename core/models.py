@@ -3,9 +3,12 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count, F, Q, ExpressionWrapper, fields
 from django.utils import timezone
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from datetime import timedelta
 from PIL import Image
 import os
+from .utils import get_s3_presigned_url
 
 # Create your models here.
 
@@ -30,42 +33,6 @@ class Person(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        
-        if self.image:
-            from django.core.files.storage import default_storage
-            from django.core.files import File
-            
-            # Open the image using a temporary file
-            with self.image.open('rb') as img_file:
-                img = Image.open(img_file)
-                
-                # Convert RGBA/LA to RGB if necessary
-                if img.mode in ('RGBA', 'LA'):
-                    background = Image.new('RGB', img.size, 'WHITE')
-                    background.paste(img, mask=img.split()[-1])
-                    img = background
-                
-                # Save the processed image to a temporary file
-                import tempfile
-                temp_file = tempfile.NamedTemporaryFile(delete=False)
-                try:
-                    img.save(temp_file.name, 'JPEG', quality=100)
-                    
-                    # Save the processed image back to storage
-                    with open(temp_file.name, 'rb') as processed_file:
-                        self.image.save(
-                            self.image.name,
-                            File(processed_file),
-                            save=False
-                        )
-                finally:
-                    temp_file.close()
-                    import os
-                    if os.path.exists(temp_file.name):
-                        os.unlink(temp_file.name)
 
     def average_rating(self):
         return self.ratings.aggregate(Avg('score'))['score__avg'] or 0.0
@@ -158,8 +125,19 @@ class Person(models.Model):
             }
         }
 
+    def get_image_url(self):
+        """Get a presigned URL for the image using boto3"""
+        if self.image:
+            return get_s3_presigned_url(self.image.name)
+        return None
+
     def __str__(self):
         return self.name
+
+@receiver(post_delete, sender=Person)
+def delete_image_file(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(False)
 
 class Rating(models.Model):
     person = models.ForeignKey(Person, related_name='ratings', on_delete=models.CASCADE)

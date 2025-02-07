@@ -229,7 +229,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Registration successful! Welcome to PersonMeter!')
+            messages.success(request, 'Registration successful! Welcome to Personmeter!')
             return redirect('home')
     else:
         form = UserRegistrationForm()

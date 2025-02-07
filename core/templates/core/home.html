@@ -30,8 +30,8 @@
                     <div class="card h-100 border-dark-subtle" style="overflow: hidden;">
                         {% if person.image %}
                             <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.image.url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.image.url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
+                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
                             </div>
                         {% else %}
                             <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
@@ -73,8 +73,8 @@
                     <div class="card h-100 border-dark-subtle" style="overflow: hidden;">
                         {% if person.image %}
                             <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.image.url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.image.url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
+                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
                             </div>
                         {% else %}
                             <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
@@ -116,8 +116,8 @@
                     <div class="card h-100 border-dark-subtle" style="overflow: hidden;">
                         {% if person.image %}
                             <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.image.url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.image.url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
+                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
                             </div>
                         {% else %}
                             <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
