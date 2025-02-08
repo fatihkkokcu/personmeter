@@ -4,4 +4,5 @@ django-crispy-forms>=2.1
 crispy-bootstrap5>=2023.10
 python-dotenv>=1.0.0
 boto3>=1.34.0
-"psycopg[binary]">=3.2.4
+psycopg-binary>=3.2.4
+django-storages>=1.14.2

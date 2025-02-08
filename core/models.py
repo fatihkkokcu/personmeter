@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count, F, Q, ExpressionWrapper, fields
 from django.utils import timezone
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from datetime import timedelta
 from PIL import Image
@@ -138,6 +138,16 @@ class Person(models.Model):
 def delete_image_file(sender, instance, **kwargs):
     if instance.image:
         instance.image.delete(False)
+
+@receiver(pre_save, sender=Person)
+def delete_old_image(sender, instance, **kwargs):
+    if instance.pk:  # Only for existing objects
+        try:
+            old_instance = Person.objects.get(pk=instance.pk)
+            if old_instance.image and old_instance.image != instance.image:
+                old_instance.image.delete(False)
+        except Person.DoesNotExist:
+            pass
 
 class Rating(models.Model):
     person = models.ForeignKey(Person, related_name='ratings', on_delete=models.CASCADE)

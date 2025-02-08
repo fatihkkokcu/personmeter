@@ -66,7 +66,7 @@
                         </div>
                         {% if form.instance.image %}
                             <div class="mb-2" id="existingImage">
-                                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" class="img-thumbnail" style="max-height: 200px;">
+                                <img src="{{ form.instance.get_image_url }}" alt="{{ form.instance.name }}" class="img-thumbnail" style="max-height: 200px;">
                             </div>
                         {% endif %}
                         {{ form.image }}
