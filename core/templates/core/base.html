@@ -64,6 +64,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'collection_list' %}">Collections</a>
                     </li>
+                    {% if user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'category_list' %}">Categories</a>
+                    </li>
+                    {% endif %}
                 </ul>
                 <form class="d-flex" action="{% url 'search' %}" method="get">
                     <input class="form-control me-2 border border-dark-subtle" type="search" name="q" placeholder="Search people...">

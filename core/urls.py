@@ -26,4 +26,10 @@ urlpatterns = [
     path('collections/<int:pk>/delete/', views.CollectionDeleteView.as_view(), name='collection_delete'),
     path('collections/add/<int:person_pk>/', views.add_to_collection, name='add_to_collection'),
     path('collections/<int:collection_pk>/remove/<int:person_pk>/', views.remove_from_collection, name='remove_from_collection'),
+    
+    # Category management URLs
+    path('categories/', views.CategoryListView.as_view(), name='category_list'),
+    path('categories/new/', views.CategoryCreateView.as_view(), name='category_create'),
+    path('categories/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category_edit'),
+    path('categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
 ] 

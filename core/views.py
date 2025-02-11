@@ -417,3 +417,56 @@ class PersonUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Person updated successfully!')
         return super().form_valid(form)
+
+class CategoryListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Category
+    template_name = 'core/category_list.html'
+    context_object_name = 'categories'
+    paginate_by = 20
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        for category in context['categories']:
+            category.person_count = category.persons.count()
+        return context
+
+class CategoryCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Category
+    template_name = 'core/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Category created successfully!')
+        return super().form_valid(form)
+
+class CategoryUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Category
+    template_name = 'core/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Category updated successfully!')
+        return super().form_valid(form)
+
+class CategoryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Category
+    template_name = 'core/category_confirm_delete.html'
+    success_url = reverse_lazy('category_list')
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Category deleted successfully!')
+        return super().delete(request, *args, **kwargs)
