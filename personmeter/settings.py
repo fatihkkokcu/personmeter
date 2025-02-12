@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-i+&5n2ed9r+r509fhz-t$kuml&8kcqemv@q3mw&9m2bh+$-)cj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['16.170.249.184']
+ALLOWED_HOSTS = ['16.170.249.184', 'www.personmeter.net', 'personmeter.net']
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
@@ -89,7 +89,7 @@ DATABASES = {
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
         'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT')
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
