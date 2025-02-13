@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-i+&5n2ed9r+r509fhz-t$kuml&8kcqemv@q3mw&9m2bh+$-)cj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['16.170.249.184', 'www.personmeter.net', 'personmeter.net']
+ALLOWED_HOSTS = ['www.personmeter.net', 'personmeter.net']
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
