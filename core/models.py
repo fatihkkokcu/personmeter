@@ -9,6 +9,8 @@ from datetime import timedelta
 from PIL import Image
 import os
 from .utils import get_s3_presigned_url
+from io import BytesIO
+from django.core.files import File
 
 # Create your models here.
 
@@ -139,6 +141,36 @@ def delete_image_file(sender, instance, **kwargs):
     if instance.image:
         instance.image.delete(False)
 
+def compress_image(image):
+    """Compress the image while maintaining aspect ratio and quality"""
+    if not image:
+        return None
+
+    img = Image.open(image)
+    
+    # Convert to RGB if image is in RGBA mode
+    if img.mode == 'RGBA':
+        img = img.convert('RGB')
+    
+    # Set maximum dimensions
+    max_width = 800
+    max_height = 800
+    
+    # Calculate new dimensions while maintaining aspect ratio
+    ratio = min(max_width/img.width, max_height/img.height)
+    new_size = (int(img.width * ratio), int(img.height * ratio))
+    
+    # Resize image
+    img = img.resize(new_size, Image.Resampling.LANCZOS)
+    
+    # Save compressed image to BytesIO object
+    output = BytesIO()
+    img.save(output, format='JPEG', quality=85, optimize=True)
+    output.seek(0)
+    
+    # Create a new Django-friendly file object
+    return File(output, name=image.name)
+
 @receiver(pre_save, sender=Person)
 def delete_old_image(sender, instance, **kwargs):
     if instance.pk:  # Only for existing objects
@@ -148,6 +180,10 @@ def delete_old_image(sender, instance, **kwargs):
                 old_instance.image.delete(False)
         except Person.DoesNotExist:
             pass
+    
+    # Compress new image if it exists
+    if instance.image:
+        instance.image = compress_image(instance.image)
 
 class Rating(models.Model):
     person = models.ForeignKey(Person, related_name='ratings', on_delete=models.CASCADE)

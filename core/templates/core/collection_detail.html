@@ -2,6 +2,10 @@
 
 {% block title %}{{ collection.title }} - Personmeter{% endblock %}
 
+{% block meta_description %}View {{ collection.title }} collection on Personmeter. A curated list of {{ collection.total_items }} personalities with an average rating of {{ collection.average_rating|floatformat:1 }}. Created by {{ collection.created_by.username }}.{% endblock %}
+
+{% block meta_keywords %}{{ collection.title }}, personmeter collection, curated personalities, {{ collection.created_by.username }}'s collection, personality list{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-8">

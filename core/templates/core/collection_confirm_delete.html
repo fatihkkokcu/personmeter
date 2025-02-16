@@ -1,6 +1,10 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Delete Collection - {{ collection.title }} - Personmeter{% endblock %}
+{% block title %}Delete {{ collection.title }} - Personmeter{% endblock %}
+
+{% block meta_description %}Confirm deletion of {{ collection.title }} collection from Personmeter. This action will remove the collection and its associations while preserving the rated profiles.{% endblock %}
+
+{% block meta_keywords %}delete collection, remove collection, collection deletion, personmeter collections, manage collections{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">

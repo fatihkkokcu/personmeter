@@ -3,6 +3,10 @@
 
 {% block title %}Search Results - Personmeter{% endblock %}
 
+{% block meta_description %}Search results{% if query %} for "{{ query }}"{% endif %} on Personmeter. Find and discover people to rate across different categories. Filter by rating, date, and more.{% endblock %}
+
+{% block meta_keywords %}personmeter search, find people, rate people, search results{% if query %}, {{ query }}{% endif %}, personality search, profile search{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="row">

@@ -9,6 +9,10 @@
     - Personmeter
 {% endblock %}
 
+{% block meta_description %}{% if person %}Edit {{ person.name }}'s profile{% else %}Add a new person{% endif %} on Personmeter. Provide details, description, category, and other information to create or update a profile.{% endblock %}
+
+{% block meta_keywords %}{% if person %}edit person, update profile{% else %}add person, create profile{% endif %}, personmeter profile, personality details, profile information{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center mb-4">
     <div class="col-md-8">

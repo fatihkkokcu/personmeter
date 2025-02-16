@@ -2,6 +2,10 @@
 
 {% block title %}{{ person.name }} - Personmeter{% endblock %}
 
+{% block meta_description %}View {{ person.name }}'s profile on Personmeter. See ratings, reviews, comments, and detailed statistics. Average rating: {{ stats.average_rating|floatformat:1 }} from {{ stats.total_ratings }} ratings.{% endblock %}
+
+{% block meta_keywords %}{{ person.name }}, personmeter profile, {{ person.category.name }}, person rating, {{ person.get_tags_list|join:", " }}, personality rating{% endblock %}
+
 {% block content %}
 <div class="row mt-3">
     <div class="col-md-8">

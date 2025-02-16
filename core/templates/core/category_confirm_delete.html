@@ -1,6 +1,10 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Delete Category - {{ block.super }}{% endblock %}
+{% block title %}Delete {{ category.name }} - Personmeter{% endblock %}
+
+{% block meta_description %}Confirm deletion of {{ category.name }} category from Personmeter. Review the impact of deleting this category and its associated profiles.{% endblock %}
+
+{% block meta_keywords %}delete category, remove category, category deletion, personmeter categories, manage categories{% endblock %}
 
 {% block content %}
 <div class="container py-4">

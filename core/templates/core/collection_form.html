@@ -9,6 +9,10 @@
     - Personmeter
 {% endblock %}
 
+{% block meta_description %}{% if collection %}Edit {{ collection.title }}{% else %}Create a new collection{% endif %} on Personmeter. Curate and organize personalities into themed collections to share with others.{% endblock %}
+
+{% block meta_keywords %}{% if collection %}edit collection, update collection{% else %}create collection, new collection{% endif %}, personmeter collections, curated lists, personality groups{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">

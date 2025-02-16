@@ -2,6 +2,10 @@
 
 {% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Category - {{ block.super }}{% endblock %}
 
+{% block meta_description %}{% if form.instance.pk %}Edit {{ form.instance.name }} category{% else %}Add a new category{% endif %} on Personmeter. Manage personality categories and their descriptions.{% endblock %}
+
+{% block meta_keywords %}{% if form.instance.pk %}edit category, update category{% else %}add category, create category{% endif %}, personmeter categories, personality types, category management{% endblock %}
+
 {% block content %}
 <div class="container py-4">
     <div class="row justify-content-center">
