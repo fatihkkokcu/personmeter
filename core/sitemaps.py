@@ -1,26 +1,25 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from .models import Person, Collection
 
 class PersonSitemap(Sitemap):
-    changefreq = "weekly"
+    changefreq = "daily"
     priority = 0.8
 
     def items(self):
-        return Person.objects.all()
+        return ['person_list']
 
-    def lastmod(self, obj):
-        return obj.updated_at
+    def location(self, item):
+        return reverse(item)
 
 class CollectionSitemap(Sitemap):
-    changefreq = "weekly"
+    changefreq = "daily"
     priority = 0.7
 
     def items(self):
-        return Collection.objects.filter(is_public=True)
+        return ['collection_list']
 
-    def lastmod(self, obj):
-        return obj.updated_at
+    def location(self, item):
+        return reverse(item)
 
 class StaticViewSitemap(Sitemap):
     priority = 0.5
