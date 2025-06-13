@@ -26,7 +26,7 @@
                     {% endif %}
                 </h2>
                 
-                <form method="post" enctype="multipart/form-data" novalidate>
+                <form method="post" enctype="multipart/form-data" novalidate id="personForm">
                     {% csrf_token %}
                     
                     {% if form.non_field_errors %}
@@ -110,7 +110,7 @@
                     
                     <div class="d-flex justify-content-between">
                         <a href="{% url 'person_list' %}" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitButton">
                             {% if form.instance.pk %}
                                 Save Changes
                             {% else %}
@@ -164,6 +164,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (existingImage) {
             existingImage.style.display = 'block';
         }
+    });
+
+    // Disable submit button after form submission
+    const form = document.getElementById('personForm');
+    const submitBtn = document.getElementById('submitButton');
+
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
     });
 });
 </script>
