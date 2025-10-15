@@ -26,6 +26,15 @@
                     {% endif %}
                 </h2>
                 
+                {% if not form.instance.pk %}
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>First time adding a person?</strong> Check out our 
+                    <a href="https://github.com/fatihkkokcu/personmeter/blob/main/docs/ADDING_PEOPLE.md" target="_blank" class="alert-link">Guide to Adding People</a> 
+                    for tips on images, descriptions, and tags.
+                </div>
+                {% endif %}
+                
                 <form method="post" enctype="multipart/form-data" novalidate id="personForm">
                     {% csrf_token %}
                     
@@ -59,6 +68,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
+                        <div class="form-text">Write 100-300 words about who this person is and what they're known for. Be objective and factual.</div>
                     </div>
 
                     <div class="mb-3">
@@ -81,6 +91,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
+                        <div class="form-text">Upload a clear, high-quality photo. Images are automatically resized to 800x800px and optimized.</div>
                     </div>
                     
                     <div class="mb-3">
@@ -105,7 +116,7 @@
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">Enter tags separated by commas (e.g., actor, director, writer)</div>
+                        <div class="form-text">Enter 5-10 comma-separated tags (e.g., actor, director, oscar winner). Include profession, industry, and achievements.</div>
                     </div>
                     
                     <div class="d-flex justify-content-between">
