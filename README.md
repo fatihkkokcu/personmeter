@@ -2,6 +2,36 @@
 
 A Django-based web platform where users can rate and discuss about people, similar to IMDB's rating system.
 
+## Setup
+
+1. Create and activate a virtual environment.
+2. Install dependencies:
+   `pip install -r requirements.txt`
+3. Copy env template:
+   `cp .env.example .env`
+4. Run migrations:
+   `python manage.py migrate`
+5. Start development server:
+   `python manage.py runserver`
+
+Default runtime mode is `development`. To run production settings, set:
+`PERSONMETER_ENV=production`
+
+## Configuration
+
+Environment variables are documented in `.env.example`.
+
+Important groups:
+- Django runtime: `PERSONMETER_ENV`, `DJANGO_SECRET_KEY`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`
+- Development DB: `SQLITE_NAME`
+- Production DB: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
+- Production storage: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`
+
+## Quality Checks
+
+- Run tests: `python manage.py test`
+- Run Django system checks: `python manage.py check`
+
 ## Features
 
 ### Person Pages
@@ -62,6 +92,6 @@ A Django-based web platform where users can rate and discuss about people, simil
 - Get notifications about updates to favorite persons
 
 ## Tech Stack
-- Django 4.x
+- Django 5.1.x
 - Bootstrap 5.x
 - SQLite (default) / PostgreSQL (production)

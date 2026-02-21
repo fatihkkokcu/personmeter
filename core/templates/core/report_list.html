@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Moderation Reports - Personmeter{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Moderation Reports</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'moderation_log_list' %}" class="btn btn-outline-dark">View Logs</a>
+        <form method="get" class="d-flex gap-2">
+            <select name="status" class="form-select">
+                <option value="">All statuses</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="card border-dark-subtle">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Target</th>
+                    <th>Reporter</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Review</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                    <tr>
+                        <td>#{{ report.id }}</td>
+                        <td>
+                            {% if report.person %}
+                                <a href="{% url 'person_detail' report.person.pk %}">{{ report.person.name }}</a>
+                            {% elif report.comment %}
+                                <a href="{% url 'person_detail' report.comment.person.pk %}">
+                                    Comment #{{ report.comment.pk }} on {{ report.comment.person.name }}
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ report.reporter.username }}</td>
+                        <td>
+                            {{ report.get_reason_display }}
+                            {% if report.details %}
+                                <div class="text-muted small mt-1">{{ report.details|truncatewords:20 }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ report.get_status_display }}</span>
+                            {% if report.reviewed_by %}
+                                <div class="text-muted small mt-1">
+                                    by {{ report.reviewed_by.username }}
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.created_at|date:"Y-m-d H:i" }}</td>
+                        <td style="min-width: 240px;">
+                            <form method="post" action="{% url 'report_status_update' report.pk %}{% if selected_status %}?status={{ selected_status }}{% endif %}">
+                                {% csrf_token %}
+                                <div class="d-flex gap-2 mb-2">
+                                    <select name="status" class="form-select form-select-sm" required>
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}" {% if report.status == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <textarea name="resolution_notes" class="form-control form-control-sm mb-2" rows="2" placeholder="Optional notes">{{ report.resolution_notes }}</textarea>
+                                <button class="btn btn-sm btn-primary w-100" type="submit">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No reports found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+            {% for num in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

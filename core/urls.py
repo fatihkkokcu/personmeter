@@ -9,6 +9,8 @@ urlpatterns = [
     path('person/<int:pk>/edit/', views.PersonUpdateView.as_view(), name='person_edit'),
     path('person/<int:pk>/rate/', views.rate_person, name='rate_person'),
     path('person/<int:pk>/comment/', views.add_comment, name='add_comment'),
+    path('person/<int:pk>/report/', views.report_person, name='report_person'),
+    path('comment/<int:pk>/report/', views.report_comment, name='report_comment'),
     path('person/<int:pk>/favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('top-rated/', views.top_rated, name='top_rated'),
     path('search/', views.search, name='search'),
@@ -32,4 +34,7 @@ urlpatterns = [
     path('categories/new/', views.CategoryCreateView.as_view(), name='category_create'),
     path('categories/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category_edit'),
     path('categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
+    path('moderation/reports/', views.ReportListView.as_view(), name='report_list'),
+    path('moderation/logs/', views.ModerationLogListView.as_view(), name='moderation_log_list'),
+    path('moderation/reports/<int:pk>/status/', views.update_report_status, name='report_status_update'),
 ] 

@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Moderation Logs - Personmeter{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Moderation Logs</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'report_list' %}" class="btn btn-outline-dark">Back to Reports</a>
+        <form method="get" class="d-flex gap-2">
+            <select name="action" class="form-select">
+                <option value="">All actions</option>
+                {% for value, label in action_choices %}
+                    <option value="{{ value }}" {% if selected_action == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="card border-dark-subtle">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Action</th>
+                    <th>Actor</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>#{{ log.id }}</td>
+                        <td>{{ log.get_action_display }}</td>
+                        <td>{{ log.actor.username|default:"system" }}</td>
+                        <td>
+                            {% if log.person %}
+                                Person: <a href="{% url 'person_detail' log.person.pk %}">{{ log.person.name }}</a>
+                            {% elif log.comment %}
+                                Comment #{{ log.comment.pk }}
+                            {% elif log.target_user %}
+                                User: {{ log.target_user.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ log.details|default:"-" }}</td>
+                        <td>{{ log.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No moderation logs found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+            {% for num in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if selected_action %}&action={{ selected_action }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_action %}&action={{ selected_action }}{% endif %}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
