@@ -6,6 +6,8 @@ from .settings_base import *  # noqa: F403,F401
 
 
 DEBUG = env_bool("DJANGO_DEBUG", False)  # noqa: F405
+if DEBUG:
+    raise ImproperlyConfigured("DJANGO_DEBUG must be false in production.")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
@@ -15,6 +17,8 @@ ALLOWED_HOSTS = env_list(  # noqa: F405
     "DJANGO_ALLOWED_HOSTS",
     ["personmeter.net", "www.personmeter.net"],
 )
+if "*" in ALLOWED_HOSTS:
+    raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS cannot contain '*' in production.")
 
 required_db_vars = ["DB_NAME", "DB_USER", "DB_PASSWORD", "DB_HOST", "DB_PORT"]
 missing_db_vars = [key for key in required_db_vars if not os.getenv(key)]
@@ -71,7 +75,28 @@ MEDIA_URL = f"https://{aws_bucket}.s3.{aws_region}.amazonaws.com/"
 MEDIA_ROOT = ""
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = env_bool("DJANGO_USE_X_FORWARDED_HOST", True)  # noqa: F405
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", [])  # noqa: F405
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)  # noqa: F405
+SECURE_HSTS_SECONDS = env_int("DJANGO_SECURE_HSTS_SECONDS", 31_536_000)  # noqa: F405
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", True)  # noqa: F405
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", True)  # noqa: F405
+SECURE_CONTENT_TYPE_NOSNIFF = env_bool("DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", True)  # noqa: F405
+SECURE_REFERRER_POLICY = os.getenv(
+    "DJANGO_SECURE_REFERRER_POLICY",
+    "strict-origin-when-cross-origin",
+)
+X_FRAME_OPTIONS = os.getenv("DJANGO_X_FRAME_OPTIONS", "DENY")
+WHITENOISE_MAX_AGE = env_int("DJANGO_WHITENOISE_MAX_AGE", 31536000)  # noqa: F405
+
+_default_csrf_trusted_origins = [
+    f"https://{host.lstrip('.')}"
+    for host in ALLOWED_HOSTS
+    if host and host != "*" and "://" not in host
+]
+CSRF_TRUSTED_ORIGINS = env_list(  # noqa: F405
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    _default_csrf_trusted_origins,
+)

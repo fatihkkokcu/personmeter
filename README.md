@@ -26,6 +26,24 @@ Important groups:
 - Development DB: `SQLITE_NAME`
 - Production DB: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
 - Production storage: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`
+- Production security: `DJANGO_SECURE_SSL_REDIRECT`, `DJANGO_SECURE_HSTS_SECONDS`, `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS`, `DJANGO_SECURE_HSTS_PRELOAD`, `DJANGO_SECURE_CONTENT_TYPE_NOSNIFF`, `DJANGO_X_FRAME_OPTIONS`
+- Upload limits: `PERSONMETER_MAX_IMAGE_UPLOAD_MB`, `PERSONMETER_MAX_IMAGE_PIXELS`, `PERSONMETER_ALLOWED_IMAGE_*`
+
+## Production Deployment
+
+This project uses:
+- `gunicorn` as the WSGI server
+- `whitenoise` for static file serving in production
+
+Typical deploy sequence:
+1. Install dependencies:
+   `pip install -r requirements.txt`
+2. Apply migrations:
+   `python manage.py migrate`
+3. Build static assets:
+   `python manage.py collectstatic --noinput`
+4. Run app:
+   `gunicorn personmeter.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120`
 
 ## Quality Checks
 

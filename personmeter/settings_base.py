@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 
@@ -24,10 +25,17 @@ def env_list(name, default=None):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-only-key-change-me",
-)
+def env_int(name, default=0):
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"{name} must be an integer.") from exc
+
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "")
 DEBUG = env_bool("DJANGO_DEBUG", False)
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["127.0.0.1", "localhost"])
 
@@ -129,3 +137,49 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", False)
 CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", False)
+
+PERSONMETER_MAX_IMAGE_UPLOAD_MB = env_int("PERSONMETER_MAX_IMAGE_UPLOAD_MB", 5)
+PERSONMETER_MAX_IMAGE_UPLOAD_BYTES = PERSONMETER_MAX_IMAGE_UPLOAD_MB * 1024 * 1024
+PERSONMETER_MAX_IMAGE_PIXELS = env_int("PERSONMETER_MAX_IMAGE_PIXELS", 25_000_000)
+
+_default_allowed_image_mime_types = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+]
+_default_allowed_image_extensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+    ".gif",
+]
+_default_allowed_image_formats = [
+    "JPEG",
+    "PNG",
+    "WEBP",
+    "GIF",
+]
+
+PERSONMETER_ALLOWED_IMAGE_MIME_TYPES = tuple(
+    mime.lower()
+    for mime in env_list(
+        "PERSONMETER_ALLOWED_IMAGE_MIME_TYPES",
+        _default_allowed_image_mime_types,
+    )
+)
+PERSONMETER_ALLOWED_IMAGE_EXTENSIONS = tuple(
+    (extension if extension.startswith(".") else f".{extension}").lower()
+    for extension in env_list(
+        "PERSONMETER_ALLOWED_IMAGE_EXTENSIONS",
+        _default_allowed_image_extensions,
+    )
+)
+PERSONMETER_ALLOWED_IMAGE_FORMATS = tuple(
+    image_format.upper()
+    for image_format in env_list(
+        "PERSONMETER_ALLOWED_IMAGE_FORMATS",
+        _default_allowed_image_formats,
+    )
+)

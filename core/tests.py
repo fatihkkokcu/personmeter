@@ -367,6 +367,59 @@ class ImageUploadHardeningTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("image", form.errors)
 
+    def test_person_form_rejects_unsupported_extension(self):
+        valid_png_content = build_test_image(
+            name="bad.bmp",
+            image_format="PNG",
+            content_type="image/png",
+        ).read()
+        invalid_extension_file = SimpleUploadedFile(
+            "bad.bmp",
+            valid_png_content,
+            content_type="image/png",
+        )
+        form = PersonForm(
+            data=self._person_form_data(),
+            files={"image": invalid_extension_file},
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image", form.errors)
+
+    def test_person_form_rejects_unsupported_image_format(self):
+        bmp_bytes = build_test_image(
+            name="avatar.png",
+            image_format="BMP",
+            content_type="image/png",
+        ).read()
+        invalid_type_file = SimpleUploadedFile(
+            "avatar.png",
+            bmp_bytes,
+            content_type="image/png",
+        )
+        form = PersonForm(
+            data=self._person_form_data(),
+            files={"image": invalid_type_file},
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("image", form.errors)
+
+    def test_person_form_rejects_high_pixel_image(self):
+        high_pixel_image = build_test_image(
+            name="large.png",
+            image_format="PNG",
+            size=(40, 40),
+            content_type="image/png",
+        )
+        with patch.object(PersonForm, "MAX_IMAGE_PIXELS", 100):
+            form = PersonForm(
+                data=self._person_form_data(),
+                files={"image": high_pixel_image},
+            )
+            self.assertFalse(form.is_valid())
+        self.assertIn("image", form.errors)
+
     def test_compress_image_returns_original_file_when_invalid(self):
         invalid_file = SimpleUploadedFile(
             "broken.jpg",
@@ -382,3 +435,15 @@ class ImageUploadHardeningTests(TestCase):
         result = compress_image(valid_file)
 
         self.assertTrue(result.name.endswith(".jpg"))
+
+    def test_compress_image_returns_original_for_high_pixel_image(self):
+        large_file = build_test_image(
+            name="very_large.png",
+            image_format="PNG",
+            size=(40, 40),
+            content_type="image/png",
+        )
+        with self.settings(PERSONMETER_MAX_IMAGE_PIXELS=100):
+            result = compress_image(large_file)
+
+        self.assertIs(result, large_file)

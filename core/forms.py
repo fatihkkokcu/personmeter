@@ -1,7 +1,10 @@
+from pathlib import Path
+
 from django import forms
-from django.core.exceptions import ValidationError
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
 from .models import Category, Collection, CollectionItem, Person, Report
@@ -90,13 +93,17 @@ class CollectionItemForm(forms.ModelForm):
         }
 
 class PersonForm(forms.ModelForm):
-    MAX_IMAGE_SIZE_MB = 5
-    MAX_IMAGE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024
+    MAX_IMAGE_SIZE_MB = settings.PERSONMETER_MAX_IMAGE_UPLOAD_MB
+    MAX_IMAGE_BYTES = settings.PERSONMETER_MAX_IMAGE_UPLOAD_BYTES
+    MAX_IMAGE_PIXELS = settings.PERSONMETER_MAX_IMAGE_PIXELS
     ALLOWED_IMAGE_TYPES = {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/gif",
+        mime.lower() for mime in settings.PERSONMETER_ALLOWED_IMAGE_MIME_TYPES
+    }
+    ALLOWED_IMAGE_EXTENSIONS = {
+        extension.lower() for extension in settings.PERSONMETER_ALLOWED_IMAGE_EXTENSIONS
+    }
+    ALLOWED_IMAGE_FORMATS = {
+        image_format.upper() for image_format in settings.PERSONMETER_ALLOWED_IMAGE_FORMATS
     }
 
     class Meta:
@@ -120,6 +127,12 @@ class PersonForm(forms.ModelForm):
                 f"Image size cannot exceed {self.MAX_IMAGE_SIZE_MB} MB."
             )
 
+        extension = Path(getattr(image, "name", "")).suffix.lower()
+        if extension not in self.ALLOWED_IMAGE_EXTENSIONS:
+            raise ValidationError(
+                "Unsupported image extension. Allowed: JPG, JPEG, PNG, WEBP, GIF."
+            )
+
         content_type = (getattr(image, "content_type", "") or "").lower()
         if content_type and content_type not in self.ALLOWED_IMAGE_TYPES:
             raise ValidationError(
@@ -128,12 +141,25 @@ class PersonForm(forms.ModelForm):
 
         try:
             parsed_image = Image.open(image)
+            image_format = (parsed_image.format or "").upper()
+            width, height = parsed_image.size
             parsed_image.verify()
-        except (UnidentifiedImageError, OSError, ValueError):
+            if image_format not in self.ALLOWED_IMAGE_FORMATS:
+                raise ValidationError(
+                    "Unsupported image format. Allowed: JPEG, PNG, WEBP, GIF."
+                )
+            if width * height > self.MAX_IMAGE_PIXELS:
+                raise ValidationError(
+                    "Image resolution is too large. Please upload a smaller image."
+                )
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
             raise ValidationError("Uploaded file is not a valid image.")
         finally:
             if hasattr(image, "seek"):
-                image.seek(0)
+                try:
+                    image.seek(0)
+                except (OSError, ValueError):
+                    pass
 
         return image
 

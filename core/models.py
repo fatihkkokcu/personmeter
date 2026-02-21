@@ -10,6 +10,7 @@ from datetime import timedelta
 import logging
 from PIL import Image, UnidentifiedImageError
 import os
+from django.conf import settings
 from .utils import get_s3_presigned_url
 from io import BytesIO
 from django.core.files import File
@@ -165,44 +166,55 @@ def compress_image(image):
     if not image:
         return None
 
+    file_name = getattr(image, "name", "<uploaded-file>")
+    max_pixels = getattr(settings, "PERSONMETER_MAX_IMAGE_PIXELS", 25_000_000)
+
+    if hasattr(image, "seek"):
+        image.seek(0)
+
     try:
-        img = Image.open(image)
-    except (UnidentifiedImageError, OSError, ValueError):
-        logger.warning("Skipping compression for invalid image upload: %s", image.name)
+        with Image.open(image) as opened_image:
+            if opened_image.width * opened_image.height > max_pixels:
+                logger.warning(
+                    "Skipping compression for oversized image dimensions (%s px): %s",
+                    max_pixels,
+                    file_name,
+                )
+                if hasattr(image, "seek"):
+                    image.seek(0)
+                return image
+
+            if opened_image.mode != "RGB":
+                img = opened_image.convert("RGB")
+            else:
+                img = opened_image.copy()
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+        logger.warning("Skipping compression for invalid image upload: %s", file_name)
         if hasattr(image, "seek"):
             image.seek(0)
         return image
     except Exception:
-        logger.exception("Unexpected image open error for file: %s", image.name)
+        logger.exception("Unexpected image open error for file: %s", file_name)
         if hasattr(image, "seek"):
             image.seek(0)
         return image
 
     try:
-        if img.mode not in ("RGB", "L"):
-            img = img.convert("RGB")
-        elif img.mode == "L":
-            img = img.convert("RGB")
-
-        max_width = 800
-        max_height = 800
-        ratio = min(1.0, max_width / img.width, max_height / img.height)
-        new_size = (max(1, int(img.width * ratio)), max(1, int(img.height * ratio)))
-        img = img.resize(new_size, Image.Resampling.LANCZOS)
+        img.thumbnail((800, 800), Image.Resampling.LANCZOS)
 
         output = BytesIO()
         img.save(output, format="JPEG", quality=85, optimize=True)
         output.seek(0)
 
-        base_name, _ = os.path.splitext(image.name)
+        base_name, _ = os.path.splitext(file_name)
         return File(output, name=f"{base_name}.jpg")
     except (OSError, ValueError):
-        logger.warning("Skipping compression for problematic image: %s", image.name)
+        logger.warning("Skipping compression for problematic image: %s", file_name)
         if hasattr(image, "seek"):
             image.seek(0)
         return image
     except Exception:
-        logger.exception("Unexpected image compression error for file: %s", image.name)
+        logger.exception("Unexpected image compression error for file: %s", file_name)
         if hasattr(image, "seek"):
             image.seek(0)
         return image
