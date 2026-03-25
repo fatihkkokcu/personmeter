@@ -66,17 +66,16 @@
                     <div class="col">
                         <div class="card h-100 border-dark-subtle d-flex flex-column" style="overflow: hidden;">
                             {% if person.image %}
-                                <div style="position: relative; height: 200px; overflow: hidden;">
-                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                    <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
-                                </div>
+                                <a href="{{ person.detail_url }}" class="person-card-media-link" aria-label="Open {{ person.name }} profile">
+                                    <img src="{{ person.image_url }}" alt="{{ person.name }}" class="person-card-media">
+                                </a>
                             {% else %}
-                                <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <a href="{{ person.detail_url }}" class="person-card-media-link bg-secondary text-white d-flex align-items-center justify-content-center" aria-label="Open {{ person.name }} profile">
                                     <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                                </div>
+                                </a>
                             {% endif %}
                             <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ person.name }}</h5>
+                                <h5 class="card-title"><a href="{{ person.detail_url }}" class="person-card-name-link">{{ person.name }}</a></h5>
                                 <p class="card-text text-muted">
                                     {% if person.avg_rating %}
                                         <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
@@ -91,7 +90,7 @@
                                         <span class="badge bg-secondary">{{ person.category.name }}</span>
                                     </div>
                                 {% endif %}
-                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
+                                <a href="{{ person.detail_url }}" class="btn btn-primary w-100 mb-2">View Profile</a>
                                 {% include 'core/includes/person_actions.html' %}
                             </div>
                         </div>
@@ -119,10 +118,11 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const personId = this.dataset.personId;
             const isFavorite = this.dataset.isFavorite === 'true';
+            const favoriteUrl = this.dataset.favoriteUrl;
             const icon = this.querySelector('i');
             const countSpan = this.querySelector('.favorite-count');
 
-            fetch(`/person/${personId}/favorite/`, {
+            fetch(favoriteUrl, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,

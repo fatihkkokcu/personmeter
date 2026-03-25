@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Q
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.utils import timezone
@@ -25,7 +25,7 @@ from django.contrib.auth import login, logout
 from .forms import UserRegistrationForm, AdvancedSearchForm, CollectionForm, CollectionItemForm, PersonForm, ReportForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import DetailView, UpdateView, ListView, CreateView, DeleteView
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.http import JsonResponse
 
 
@@ -56,6 +56,76 @@ def _visible_comments_queryset(request, person):
     if not _is_staff_user(request):
         queryset = queryset.filter(is_hidden=False)
     return queryset
+
+
+def _get_person_by_slug_or_404(slug):
+    return get_object_or_404(
+        Person.objects.select_related("category", "created_by"),
+        slug=slug,
+    )
+
+
+def person_detail_legacy_redirect(request, pk):
+    person = get_object_or_404(Person, pk=pk)
+    return redirect(person, permanent=True)
+
+
+def _person_base_queryset(request):
+    return _visible_persons_queryset(request).select_related("category", "created_by")
+
+
+def _get_user_collections(request):
+    if not request.user.is_authenticated:
+        return []
+
+    cached_collections = getattr(request, "_personmeter_user_collections", None)
+    if cached_collections is None:
+        cached_collections = list(
+            request.user.collections.only("id", "title").order_by("title")
+        )
+        request._personmeter_user_collections = cached_collections
+    return cached_collections
+
+
+def _attach_person_rating_aliases(persons):
+    persons = list(persons)
+    for person in persons:
+        person.avg_rating = person.ratings_average_cached
+        person.rating_count = person.ratings_count_cached
+        person.detail_url = person.get_absolute_url()
+    return persons
+
+
+def _decorate_person_cards(request, persons):
+    persons = _attach_person_rating_aliases(persons)
+    if not persons:
+        return persons
+
+    person_ids = [person.pk for person in persons]
+    favorite_counts = {}
+    favorited_ids = set()
+
+    if request.user.is_authenticated:
+        favorite_counts = {
+            row["person_id"]: row["total"]
+            for row in Favorite.objects.filter(person_id__in=person_ids)
+            .values("person_id")
+            .annotate(total=Count("id"))
+        }
+        favorited_ids = set(
+            Favorite.objects.filter(
+                user_profile=request.user.profile,
+                person_id__in=person_ids,
+            ).values_list("person_id", flat=True)
+        )
+
+    for person in persons:
+        person.favorite_count = favorite_counts.get(person.pk, 0)
+        person.is_favorited_by_user = person.pk in favorited_ids
+        person.image_url = person.get_image_url()
+        person.favorite_url = reverse("toggle_favorite", kwargs={"slug": person.slug})
+
+    return persons
 
 
 def _create_moderation_log(
@@ -273,7 +343,7 @@ def home(request):
     selected_category = None
     
     # Base querysets
-    persons_query = _visible_persons_queryset(request)
+    persons_query = _person_base_queryset(request)
     if category_id:
         try:
             selected_category = int(category_id)
@@ -282,34 +352,35 @@ def home(request):
             pass
     
     # Get trending persons
-    trending_persons = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=0).order_by('-rating_count')[:6]
+    trending_persons = _decorate_person_cards(
+        request,
+        persons_query.filter(ratings_count_cached__gt=0).order_by(
+            '-ratings_count_cached',
+            '-ratings_average_cached',
+            'name',
+        )[:6],
+    )
     
     # Get recent persons
-    recent_persons = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).order_by('-created_at')[:6]
+    recent_persons = _decorate_person_cards(
+        request,
+        persons_query.order_by('-created_at', '-pk')[:6],
+    )
     
     # Get top rated persons
-    top_rated = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=10).order_by('-avg_rating')[:6]
+    top_rated = _decorate_person_cards(
+        request,
+        persons_query.filter(ratings_count_cached__gt=10).order_by(
+            '-ratings_average_cached',
+            '-ratings_count_cached',
+            'name',
+        )[:6],
+    )
     
     # Get all categories
     categories = Category.objects.annotate(
         person_count=Count('persons')
     ).filter(person_count__gt=0).order_by('name')
-    
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for persons in [trending_persons, recent_persons, top_rated]:
-            for person in persons:
-                person.is_favorited_by_user = person.id in user_favorites
     
     context = {
         'trending_persons': trending_persons,
@@ -317,37 +388,39 @@ def home(request):
         'top_rated': top_rated,
         'categories': categories,
         'selected_category': selected_category,
+        'user_collections': _get_user_collections(request),
     }
     return render(request, 'core/home.html', context)
 
 def person_list(request):
-    persons = _visible_persons_queryset(request).annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).order_by('-created_at')
-    
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for person in persons:
-            person.is_favorited_by_user = person.id in user_favorites
+    persons = _person_base_queryset(request).order_by('-created_at', '-pk')
     
     paginator = Paginator(persons, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    page_obj.object_list = _decorate_person_cards(request, page_obj.object_list)
     
-    return render(request, 'core/person_list.html', {'page_obj': page_obj})
+    return render(
+        request,
+        'core/person_list.html',
+        {
+            'page_obj': page_obj,
+            'user_collections': _get_user_collections(request),
+        },
+    )
 
-def person_detail(request, pk):
-    person = get_object_or_404(Person, pk=pk)
+def person_detail(request, slug):
+    person = _get_person_by_slug_or_404(slug)
     if person.is_hidden and not _is_staff_user(request):
         raise Http404("Person not found.")
+
+    person.image_url = person.get_image_url()
 
     user_rating = None
     if request.user.is_authenticated:
         user_rating = Rating.objects.filter(person=person, user=request.user).first()
     
-    comments = _visible_comments_queryset(request, person).order_by('-created_at')
+    comments = _visible_comments_queryset(request, person).select_related('user').order_by('-created_at')
     paginator = Paginator(comments, 10)
     page_number = request.GET.get('page')
     comments_page = paginator.get_page(page_number)
@@ -374,14 +447,14 @@ def person_detail(request, pk):
     return render(request, 'core/person_detail.html', context)
 
 @login_required
-def rate_person(request, pk):
+def rate_person(request, slug):
     if request.method == 'POST':
         if _reject_sanctioned_action(request, "rate"):
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         if _is_honeypot_triggered(request):
             messages.error(request, 'Suspicious submission blocked.')
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         if _reject_rate_limit(
             request,
@@ -389,10 +462,10 @@ def rate_person(request, pk):
             limit_config=RATING_RATE_LIMIT,
             message_prefix='Too many rating attempts.',
         ):
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         score = request.POST.get('score')
-        person = get_object_or_404(Person, pk=pk)
+        person = _get_person_by_slug_or_404(slug)
         if person.is_hidden and not _is_staff_user(request):
             messages.error(request, 'This profile is under moderation review.')
             return redirect('home')
@@ -407,7 +480,7 @@ def rate_person(request, pk):
                 and is_flooding(existing_rating.updated_at, RATING_DUPLICATE_FLOOD_SECONDS)
             ):
                 messages.warning(request, 'You already submitted this score recently.')
-                return redirect('person_detail', pk=pk)
+                return redirect('person_detail', slug=slug)
 
             Rating.objects.update_or_create(
                 person=person,
@@ -417,17 +490,17 @@ def rate_person(request, pk):
             messages.success(request, 'Rating submitted successfully!')
         else:
             messages.error(request, 'Invalid rating value!')
-    return redirect('person_detail', pk=pk)
+    return redirect('person_detail', slug=slug)
 
 @login_required
-def add_comment(request, pk):
+def add_comment(request, slug):
     if request.method == 'POST':
         if _reject_sanctioned_action(request, "comment"):
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         if _is_honeypot_triggered(request):
             messages.error(request, 'Suspicious submission blocked.')
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         if _reject_rate_limit(
             request,
@@ -435,14 +508,14 @@ def add_comment(request, pk):
             limit_config=COMMENT_RATE_LIMIT,
             message_prefix='Comment limit reached.',
         ):
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         content = (request.POST.get('content') or '').strip()
         if not content:
             messages.error(request, 'Comment cannot be empty!')
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
-        person = get_object_or_404(Person, pk=pk)
+        person = _get_person_by_slug_or_404(slug)
         if person.is_hidden and not _is_staff_user(request):
             messages.error(request, 'This profile is under moderation review.')
             return redirect('home')
@@ -450,7 +523,7 @@ def add_comment(request, pk):
 
         if latest_comment and is_flooding(latest_comment.created_at, COMMENT_FLOOD_SECONDS):
             messages.error(request, 'Please wait a bit before posting another comment.')
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         duplicate_window_start = timezone.now() - timedelta(minutes=15)
         duplicate_comment_exists = Comment.objects.filter(
@@ -461,7 +534,7 @@ def add_comment(request, pk):
         ).exists()
         if duplicate_comment_exists:
             messages.error(request, 'Duplicate comment detected. Please post something new.')
-            return redirect('person_detail', pk=pk)
+            return redirect('person_detail', slug=slug)
 
         Comment.objects.create(
             person=person,
@@ -469,25 +542,25 @@ def add_comment(request, pk):
             content=content
         )
         messages.success(request, 'Comment added successfully!')
-    return redirect('person_detail', pk=pk)
+    return redirect('person_detail', slug=slug)
 
 
 @login_required
-def report_person(request, pk):
-    person = get_object_or_404(Person, pk=pk)
+def report_person(request, slug):
+    person = _get_person_by_slug_or_404(slug)
     if person.is_hidden and not _is_staff_user(request):
         messages.error(request, 'This profile is currently unavailable.')
         return redirect('home')
 
     if request.method != 'POST':
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     if _reject_sanctioned_action(request, "report"):
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     if _is_honeypot_triggered(request):
         messages.error(request, 'Suspicious submission blocked.')
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     if _reject_rate_limit(
         request,
@@ -495,12 +568,12 @@ def report_person(request, pk):
         limit_config=REPORT_RATE_LIMIT,
         message_prefix='Report limit reached.',
     ):
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     form = ReportForm(request.POST)
     if not form.is_valid():
         messages.error(request, 'Invalid report form.')
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     reason = form.cleaned_data['reason']
     details = form.cleaned_data['details']
@@ -517,7 +590,7 @@ def report_person(request, pk):
     if created:
         _reconcile_target_visibility(report)
         messages.success(request, 'Report submitted. Thank you for helping moderate the platform.')
-        return redirect('person_detail', pk=pk)
+        return redirect('person_detail', slug=slug)
 
     report.reason = reason
     report.details = details
@@ -537,7 +610,7 @@ def report_person(request, pk):
     )
     _reconcile_target_visibility(report)
     messages.info(request, 'Your existing report has been updated and re-opened.')
-    return redirect('person_detail', pk=pk)
+    return redirect('person_detail', slug=slug)
 
 
 @login_required
@@ -548,14 +621,14 @@ def report_comment(request, pk):
         return redirect('home')
 
     if request.method != 'POST':
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     if _reject_sanctioned_action(request, "report"):
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     if _is_honeypot_triggered(request):
         messages.error(request, 'Suspicious submission blocked.')
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     if _reject_rate_limit(
         request,
@@ -563,12 +636,12 @@ def report_comment(request, pk):
         limit_config=REPORT_RATE_LIMIT,
         message_prefix='Report limit reached.',
     ):
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     form = ReportForm(request.POST)
     if not form.is_valid():
         messages.error(request, 'Invalid report form.')
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     reason = form.cleaned_data['reason']
     details = form.cleaned_data['details']
@@ -585,7 +658,7 @@ def report_comment(request, pk):
     if created:
         _reconcile_target_visibility(report)
         messages.success(request, 'Comment reported successfully.')
-        return redirect('person_detail', pk=comment.person_id)
+        return redirect(comment.person)
 
     report.reason = reason
     report.details = details
@@ -605,23 +678,21 @@ def report_comment(request, pk):
     )
     _reconcile_target_visibility(report)
     messages.info(request, 'Your existing comment report has been updated and re-opened.')
-    return redirect('person_detail', pk=comment.person_id)
+    return redirect(comment.person)
 
 def top_rated(request):
-    persons = _visible_persons_queryset(request).annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=100).order_by('-avg_rating')[:250]
+    persons = _attach_person_rating_aliases(
+        _person_base_queryset(request)
+        .filter(ratings_count_cached__gt=100)
+        .order_by('-ratings_average_cached', '-ratings_count_cached', 'name')[:250]
+    )
     
     return render(request, 'core/top_rated.html', {'persons': persons})
 
 def search(request):
     query = request.GET.get('q', '')
     form = AdvancedSearchForm(request.GET)
-    persons = _visible_persons_queryset(request).annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    )
+    persons = _person_base_queryset(request)
     
     if query:
         persons = persons.filter(
@@ -647,34 +718,38 @@ def search(request):
         max_rating = form.cleaned_data.get('max_rating')
         
         if min_rating is not None:
-            persons = persons.filter(avg_rating__gte=min_rating)
+            persons = persons.filter(ratings_average_cached__gte=min_rating)
         if max_rating is not None:
-            persons = persons.filter(avg_rating__lte=max_rating)
+            persons = persons.filter(ratings_average_cached__lte=max_rating)
         # Handle minimum ratings count
         min_ratings_count = form.cleaned_data.get('min_ratings_count')
         if min_ratings_count is not None:
-            persons = persons.filter(rating_count__gte=min_ratings_count)
+            persons = persons.filter(ratings_count_cached__gte=min_ratings_count)
     # Order results
     sort_by = request.GET.get('sort', '-created_at')
-    if sort_by in ['-created_at', 'created_at', 'name', '-name', '-avg_rating', 'avg_rating', '-rating_count']:
-        persons = persons.order_by(sort_by)
-    
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for person in persons:
-            person.is_favorited_by_user = person.id in user_favorites
+    sort_map = {
+        '-created_at': ('-created_at', '-pk'),
+        'created_at': ('created_at', 'pk'),
+        'name': ('name', 'pk'),
+        '-name': ('-name', 'pk'),
+        '-avg_rating': ('-ratings_average_cached', '-ratings_count_cached', 'name'),
+        'avg_rating': ('ratings_average_cached', '-ratings_count_cached', 'name'),
+        '-rating_count': ('-ratings_count_cached', '-ratings_average_cached', 'name'),
+    }
+    persons = persons.order_by(*sort_map.get(sort_by, sort_map['-created_at']))
     
     # Add pagination
     paginator = Paginator(persons, 12)  # Show 12 persons per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    page_obj.object_list = _decorate_person_cards(request, page_obj.object_list)
     
     context = {
         'query': query,
         'form': form,
         'page_obj': page_obj,
-        'sort_by': sort_by
+        'sort_by': sort_by if sort_by in sort_map else '-created_at',
+        'user_collections': _get_user_collections(request),
     }
     return render(request, 'core/search.html', context)
 
@@ -839,9 +914,9 @@ def update_report_status(request, pk):
 
 
 @login_required
-def toggle_favorite(request, pk):
+def toggle_favorite(request, slug):
     if request.method == 'POST':
-        person = get_object_or_404(Person, pk=pk)
+        person = _get_person_by_slug_or_404(slug)
         favorite, created = Favorite.objects.get_or_create(
             user_profile=request.user.profile,
             person=person
@@ -931,8 +1006,8 @@ class CollectionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return collection.created_by == self.request.user
 
 @login_required
-def add_to_collection(request, person_pk):
-    person = get_object_or_404(Person, pk=person_pk)
+def add_to_collection(request, slug):
+    person = _get_person_by_slug_or_404(slug)
     
     if request.method == 'POST':
         collection_id = request.POST.get('collection')
@@ -947,7 +1022,7 @@ def add_to_collection(request, person_pk):
         else:
             messages.error(request, 'Please select a collection')
     
-    return redirect('person_detail', pk=person_pk)
+    return redirect(person)
 
 @login_required
 def remove_from_collection(request, collection_pk, person_pk):
@@ -971,13 +1046,15 @@ class PersonUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Person
     form_class = PersonForm
     template_name = 'core/person_form.html'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
 
     def test_func(self):
         person = self.get_object()
         return self.request.user.is_superuser or person.created_by == self.request.user
 
     def get_success_url(self):
-        return reverse_lazy('person_detail', kwargs={'pk': self.object.pk})
+        return self.object.get_absolute_url()
 
     def form_valid(self, form):
         messages.success(self.request, 'Person updated successfully!')

@@ -40,7 +40,7 @@
                         <td>{{ log.actor.username|default:"system" }}</td>
                         <td>
                             {% if log.person %}
-                                Person: <a href="{% url 'person_detail' log.person.pk %}">{{ log.person.name }}</a>
+                                Person: <a href="{{ log.person.get_absolute_url }}">{{ log.person.name }}</a>
                             {% elif log.comment %}
                                 Comment #{{ log.comment.pk }}
                             {% elif log.target_user %}

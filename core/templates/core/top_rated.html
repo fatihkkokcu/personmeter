@@ -27,7 +27,7 @@
                 <tr>
                     <td class="align-middle">{{ forloop.counter }}</td>
                     <td class="align-middle">
-                        <a href="{% url 'person_detail' person.pk %}" class="text-decoration-none">
+                        <a href="{{ person.detail_url }}" class="text-decoration-none">
                             {{ person.name }}
                         </a>
                         <div class="text-muted small">{{ person.description|truncatewords:20 }}</div>

@@ -1,8 +1,10 @@
 from io import BytesIO
+from io import StringIO
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 from PIL import Image
@@ -11,6 +13,8 @@ from .forms import PersonForm
 from .models import (
     Category,
     Comment,
+    Collection,
+    CollectionItem,
     Favorite,
     ModerationLog,
     Person,
@@ -90,7 +94,7 @@ class InteractionFlowTests(TestCase):
     def test_rate_person_creates_and_updates_rating(self):
         self.client.login(username="member", password="pass12345")
 
-        rate_url = reverse("rate_person", kwargs={"pk": self.person.pk})
+        rate_url = reverse("rate_person", kwargs={"slug": self.person.slug})
         self.client.post(rate_url, {"score": "7"})
         self.client.post(rate_url, {"score": "9"})
 
@@ -104,7 +108,7 @@ class InteractionFlowTests(TestCase):
     def test_toggle_favorite_adds_then_removes(self):
         self.client.login(username="member", password="pass12345")
 
-        favorite_url = reverse("toggle_favorite", kwargs={"pk": self.person.pk})
+        favorite_url = reverse("toggle_favorite", kwargs={"slug": self.person.slug})
         add_response = self.client.post(favorite_url)
         remove_response = self.client.post(favorite_url)
 
@@ -146,7 +150,7 @@ class ReportFlowTests(TestCase):
     def test_report_person_creates_report(self):
         self.client.login(username="reporter", password="pass12345")
         response = self.client.post(
-            reverse("report_person", kwargs={"pk": self.person.pk}),
+            reverse("report_person", kwargs={"slug": self.person.slug}),
             {"reason": Report.REASON_SPAM, "details": "Spam links"},
         )
 
@@ -232,7 +236,7 @@ class ReportFlowTests(TestCase):
             )
             self.client.login(username=reporter.username, password="pass12345")
             self.client.post(
-                reverse("report_person", kwargs={"pk": target_person.pk}),
+                reverse("report_person", kwargs={"slug": target_person.slug}),
                 {"reason": Report.REASON_OTHER, "details": f"Violation {index}"},
             )
             report = Report.objects.get(reporter=reporter, person=target_person)
@@ -290,7 +294,7 @@ class AbuseProtectionTests(TestCase):
     def test_comment_honeypot_blocks_submission(self):
         self.client.login(username="abuse_user", password="pass12345")
         response = self.client.post(
-            reverse("add_comment", kwargs={"pk": self.person.pk}),
+            reverse("add_comment", kwargs={"slug": self.person.slug}),
             {"content": "Should be blocked", "website": "bot-filled"},
         )
 
@@ -301,11 +305,11 @@ class AbuseProtectionTests(TestCase):
         self.client.login(username="abuse_user", password="pass12345")
         with patch("core.views.COMMENT_RATE_LIMIT", (1, 300)):
             self.client.post(
-                reverse("add_comment", kwargs={"pk": self.person.pk}),
+                reverse("add_comment", kwargs={"slug": self.person.slug}),
                 {"content": "First message"},
             )
             response = self.client.post(
-                reverse("add_comment", kwargs={"pk": self.person.pk}),
+                reverse("add_comment", kwargs={"slug": self.person.slug}),
                 {"content": "Second message"},
             )
 
@@ -314,7 +318,7 @@ class AbuseProtectionTests(TestCase):
 
     def test_duplicate_rating_flood_blocked(self):
         self.client.login(username="abuse_user", password="pass12345")
-        rate_url = reverse("rate_person", kwargs={"pk": self.person.pk})
+        rate_url = reverse("rate_person", kwargs={"slug": self.person.slug})
 
         self.client.post(rate_url, {"score": "8"})
         response = self.client.post(rate_url, {"score": "8"})
@@ -328,7 +332,7 @@ class AbuseProtectionTests(TestCase):
         self.person.hidden_reason = "Auto-hidden after moderation"
         self.person.save(update_fields=["is_hidden", "hidden_reason"])
 
-        response = self.client.get(reverse("person_detail", kwargs={"pk": self.person.pk}))
+        response = self.client.get(reverse("person_detail", kwargs={"slug": self.person.slug}))
         self.assertEqual(response.status_code, 404)
 
 
@@ -447,3 +451,47 @@ class ImageUploadHardeningTests(TestCase):
             result = compress_image(large_file)
 
         self.assertIs(result, large_file)
+
+
+class PersonSlugTests(TestCase):
+    def test_turkish_name_generates_readable_slug(self):
+        owner = User.objects.create_user(username="slug_owner", password="pass12345")
+        category = Category.objects.create(name="Slug Cat", description="Slug tests")
+
+        person = Person.objects.create(
+            name="Kıvanç Tatlıtuğ",
+            description="Slug profile",
+            category=category,
+            created_by=owner,
+        )
+
+        self.assertEqual(person.slug, "kivanc-tatlitug")
+
+
+class SeedMockDataCommandTests(TestCase):
+    def test_seed_mock_data_is_idempotent(self):
+        out = StringIO()
+
+        call_command("seed_mock_data", fan_count=12, stdout=out)
+
+        celebrity_count = Person.objects.count()
+        comment_count = Comment.objects.count()
+        rating_count = Rating.objects.count()
+        favorite_count = Favorite.objects.count()
+        collection_count = Collection.objects.count()
+        collection_item_count = CollectionItem.objects.count()
+
+        self.assertGreaterEqual(celebrity_count, 50)
+        self.assertEqual(User.objects.filter(username__startswith="demo_fan_").count(), 12)
+        self.assertTrue(Person.objects.filter(name="Taylor Swift").exists())
+        self.assertTrue(Person.objects.filter(ratings_count_cached__gt=0).exists())
+        self.assertTrue(collection_count > 0)
+
+        call_command("seed_mock_data", fan_count=12, stdout=out)
+
+        self.assertEqual(Person.objects.count(), celebrity_count)
+        self.assertEqual(Comment.objects.count(), comment_count)
+        self.assertEqual(Rating.objects.count(), rating_count)
+        self.assertEqual(Favorite.objects.count(), favorite_count)
+        self.assertEqual(Collection.objects.count(), collection_count)
+        self.assertEqual(CollectionItem.objects.count(), collection_item_count)

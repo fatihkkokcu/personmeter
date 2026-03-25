@@ -26,6 +26,7 @@ Important groups:
 - Development DB: `SQLITE_NAME`
 - Production DB: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
 - Production storage: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`
+- S3 URL strategy: `PERSONMETER_S3_PRESIGNED_URLS`, `PERSONMETER_S3_PRESIGNED_URL_EXPIRATION`
 - Production security: `DJANGO_SECURE_SSL_REDIRECT`, `DJANGO_SECURE_HSTS_SECONDS`, `DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS`, `DJANGO_SECURE_HSTS_PRELOAD`, `DJANGO_SECURE_CONTENT_TYPE_NOSNIFF`, `DJANGO_X_FRAME_OPTIONS`
 - Upload limits: `PERSONMETER_MAX_IMAGE_UPLOAD_MB`, `PERSONMETER_MAX_IMAGE_PIXELS`, `PERSONMETER_ALLOWED_IMAGE_*`
 
@@ -44,6 +45,26 @@ Typical deploy sequence:
    `python manage.py collectstatic --noinput`
 4. Run app:
    `gunicorn personmeter.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120`
+
+## Docker / Coolify
+
+This repository now includes a production `Dockerfile` and `.dockerignore`.
+
+Recommended Coolify setup:
+1. Use Dockerfile-based deployment.
+2. Provide the required production environment variables from `.env.example`.
+3. Set `PERSONMETER_ENV=production`.
+4. Set `PERSONMETER_RUN_MIGRATIONS=1` for the first boot or for controlled rollout deploys.
+5. Keep `PERSONMETER_COLLECTSTATIC=1` enabled in production.
+
+Container defaults:
+- Python runtime: `3.10.0`
+- Port: `8000` inside the container, overridable with `PORT`
+- Workers: `3`, overridable with `GUNICORN_WORKERS`
+- Timeout: `120`, overridable with `GUNICORN_TIMEOUT`
+
+For public-read buckets, keep `PERSONMETER_S3_PRESIGNED_URLS=false` for stable cacheable media URLs.
+For private buckets, set `PERSONMETER_S3_PRESIGNED_URLS=true`.
 
 ## Quality Checks
 
@@ -110,6 +131,6 @@ Typical deploy sequence:
 - Get notifications about updates to favorite persons
 
 ## Tech Stack
-- Django 5.1.x
+- Django 5.2.x
 - Bootstrap 5.x
 - SQLite (default) / PostgreSQL (production)

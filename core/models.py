@@ -3,21 +3,57 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count, F, Q, ExpressionWrapper, fields
+from django.urls import reverse
 from django.utils import timezone
-from django.db.models.signals import post_delete, pre_save
+from django.utils.text import slugify
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from datetime import timedelta
 import logging
 from PIL import Image, UnidentifiedImageError
 import os
 from django.conf import settings
-from .utils import get_s3_presigned_url
+from .utils import get_storage_url
 from io import BytesIO
 from django.core.files import File
 
 # Create your models here.
 
 logger = logging.getLogger(__name__)
+
+SLUG_TRANSLATION_TABLE = str.maketrans(
+    {
+        "ç": "c",
+        "Ç": "C",
+        "ğ": "g",
+        "Ğ": "G",
+        "ı": "i",
+        "İ": "I",
+        "ö": "o",
+        "Ö": "O",
+        "ş": "s",
+        "Ş": "S",
+        "ü": "u",
+        "Ü": "U",
+    }
+)
+
+
+def normalize_slug_source(value):
+    return value.translate(SLUG_TRANSLATION_TABLE)
+
+
+def generate_person_slug(instance):
+    base_slug = slugify(normalize_slug_source(instance.name))[:230] or "person"
+    slug = base_slug
+    counter = 2
+
+    while Person.objects.exclude(pk=instance.pk).filter(slug=slug).exists():
+        suffix = f"-{counter}"
+        slug = f"{base_slug[: 230 - len(suffix)]}{suffix}"
+        counter += 1
+
+    return slug
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -32,26 +68,44 @@ class Category(models.Model):
         return self.name
 
 class Person(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
+    slug = models.SlugField(max_length=230, unique=True, db_index=True, blank=True)
     description = models.TextField()
     image = models.ImageField(upload_to='person_images/', blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='persons')
     tags = models.CharField(max_length=500, blank=True, help_text="Comma-separated tags")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    is_hidden = models.BooleanField(default=False)
+    is_hidden = models.BooleanField(default=False, db_index=True)
     hidden_at = models.DateTimeField(null=True, blank=True)
     hidden_reason = models.CharField(max_length=255, blank=True)
+    ratings_count_cached = models.PositiveIntegerField(default=0, db_index=True)
+    ratings_average_cached = models.FloatField(default=0.0, db_index=True)
 
     def average_rating(self):
-        return self.ratings.aggregate(Avg('score'))['score__avg'] or 0.0
+        return self.ratings_average_cached or 0.0
 
     def total_ratings(self):
-        return self.ratings.count()
+        return self.ratings_count_cached
 
     def get_tags_list(self):
         return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = generate_person_slug(self)
+        super().save(*args, **kwargs)
+
+    def refresh_rating_metrics(self, save=True):
+        aggregates = self.ratings.aggregate(
+            average=Avg('score'),
+            count=Count('id'),
+        )
+        self.ratings_average_cached = float(aggregates["average"] or 0.0)
+        self.ratings_count_cached = aggregates["count"] or 0
+        if save:
+            self.save(update_fields=["ratings_average_cached", "ratings_count_cached"])
 
     def get_rating_distribution(self):
         distribution = self.ratings.values('score').annotate(
@@ -106,7 +160,10 @@ class Person(models.Model):
         """Find similar persons based on common raters and ratings"""
         person_ratings = self.ratings.values_list('user_id', 'score')
         person_raters = set(uid for uid, _ in person_ratings)
-        
+
+        if not person_raters:
+            return Person.objects.none()
+
         # Get persons rated by the same users
         similar_persons = Person.objects.exclude(pk=self.pk).filter(
             ratings__user_id__in=person_raters
@@ -124,22 +181,24 @@ class Person(models.Model):
         return {
             'total_ratings': self.total_ratings(),
             'average_rating': self.average_rating(),
-            'rating_distribution': self.get_rating_distribution(),
-            'total_comments': self.comments.count(),
             'total_favorites': self.favorited_by.count(),
             'total_collections': self.collections.filter(is_public=True).count(),
             'recent_activity': {
-                'ratings': self.ratings.order_by('-created_at')[:5],
-                'comments': self.comments.order_by('-created_at')[:5],
-                'collections': self.collections.filter(is_public=True).order_by('-created_at')[:5]
+                'ratings': self.ratings.select_related('user').order_by('-created_at')[:5],
+                'comments': self.comments.select_related('user').order_by('-created_at')[:5],
+                'collections': self.collections.filter(is_public=True).select_related('created_by').order_by('-created_at')[:5]
             }
         }
 
     def get_image_url(self):
-        """Get a presigned URL for the image using boto3"""
-        if self.image:
-            return get_s3_presigned_url(self.image.name)
-        return None
+        if not self.image:
+            return None
+
+        cached_url = getattr(self, "_cached_image_url", None)
+        if cached_url is None:
+            cached_url = get_storage_url(self.image.name)
+            self._cached_image_url = cached_url
+        return cached_url
 
     def hide(self, reason):
         self.is_hidden = True
@@ -152,6 +211,9 @@ class Person(models.Model):
         self.hidden_reason = ""
         self.hidden_at = None
         self.save(update_fields=["is_hidden", "hidden_reason", "hidden_at"])
+
+    def get_absolute_url(self):
+        return reverse("person_detail", kwargs={"slug": self.slug})
 
     def __str__(self):
         return self.name
@@ -221,6 +283,8 @@ def compress_image(image):
 
 @receiver(pre_save, sender=Person)
 def delete_old_image(sender, instance, **kwargs):
+    instance.__dict__.pop("_cached_image_url", None)
+
     if instance.pk:  # Only for existing objects
         try:
             old_instance = Person.objects.get(pk=instance.pk)
@@ -245,6 +309,16 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s rating for {self.person.name}"
+
+
+@receiver(post_save, sender=Rating)
+def refresh_person_rating_metrics_on_save(sender, instance, **kwargs):
+    instance.person.refresh_rating_metrics()
+
+
+@receiver(post_delete, sender=Rating)
+def refresh_person_rating_metrics_on_delete(sender, instance, **kwargs):
+    instance.person.refresh_rating_metrics()
 
 class Comment(models.Model):
     person = models.ForeignKey(Person, related_name='comments', on_delete=models.CASCADE)

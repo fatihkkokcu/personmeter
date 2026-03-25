@@ -39,9 +39,9 @@
                         <td>#{{ report.id }}</td>
                         <td>
                             {% if report.person %}
-                                <a href="{% url 'person_detail' report.person.pk %}">{{ report.person.name }}</a>
+                                <a href="{{ report.person.get_absolute_url }}">{{ report.person.name }}</a>
                             {% elif report.comment %}
-                                <a href="{% url 'person_detail' report.comment.person.pk %}">
+                                <a href="{{ report.comment.person.get_absolute_url }}">
                                     Comment #{{ report.comment.pk }} on {{ report.comment.person.name }}
                                 </a>
                             {% else %}

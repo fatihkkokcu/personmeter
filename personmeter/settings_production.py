@@ -64,6 +64,8 @@ STORAGES = {
             "custom_domain": f"{aws_bucket}.s3.{aws_region}.amazonaws.com",
             "file_overwrite": False,
             "default_acl": None,
+            "querystring_auth": PERSONMETER_S3_PRESIGNED_URLS,  # noqa: F405
+            "querystring_expire": PERSONMETER_S3_PRESIGNED_URL_EXPIRATION,  # noqa: F405
         },
     },
     "staticfiles": {

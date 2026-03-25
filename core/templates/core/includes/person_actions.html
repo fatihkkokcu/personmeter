@@ -3,9 +3,10 @@
         <button type="button" 
                 class="btn btn-outline-primary favorite-btn" 
                 data-person-id="{{ person.pk }}"
+                data-favorite-url="{{ person.favorite_url }}"
                 data-is-favorite="{{ person.is_favorited_by_user|yesno:'true,false' }}">
             <i class="bi {% if person.is_favorited_by_user %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
-            <span class="favorite-count">{{ person.favorited_by.count }}</span>
+            <span class="favorite-count">{{ person.favorite_count }}</span>
         </button>
         <button type="button" 
                 class="btn btn-outline-primary" 
@@ -23,19 +24,19 @@
                     <h5 class="modal-title">Add {{ person.name }} to Collection</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form action="{% url 'add_to_collection' person.pk %}" method="post">
+                <form action="{% url 'add_to_collection' person.slug %}" method="post">
                     {% csrf_token %}
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Select Collection:</label>
                             <select name="collection" class="form-select" required>
                                 <option value="">Choose a collection...</option>
-                                {% for collection in user.collections.all %}
+                                {% for collection in user_collections %}
                                     <option value="{{ collection.pk }}">{{ collection.title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        {% if not user.collections.exists %}
+                        {% if not user_collections %}
                             <div class="alert alert-info">
                                 You don't have any collections yet. 
                                 <a href="{% url 'collection_create' %}" class="alert-link">Create one</a>

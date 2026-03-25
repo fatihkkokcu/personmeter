@@ -61,7 +61,7 @@
                         <div class="card h-100 border-dark-subtle">
                             <div class="card-body">
                                 <h5 class="card-title">
-                                    <a href="{% url 'person_detail' person.pk %}" class="text-decoration-none">
+                                    <a href="{{ person.get_absolute_url }}" class="text-decoration-none">
                                         {{ person.name }}
                                     </a>
                                 </h5>

@@ -14,12 +14,12 @@
                 <div class="row g-0">
                     <div class="col-md-3 col-lg-3 text-center d-flex d-md-block" style="min-height: 200px;">
                         {% if person.image %}
-                            <img src="{{ person.get_image_url }}" alt="{{ person.name }}" 
+                            <img src="{{ person.image_url }}" alt="{{ person.name }}" 
                                 class="img-fluid h-100 d-none d-md-block position-absolute" 
                                 style="object-fit: cover; left: 0; top: 0;">
                             <!-- Mobile-only version that's centered -->
                             <div style="height: 200px; width: 100%;">
-                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" 
+                                <img src="{{ person.image_url }}" alt="{{ person.name }}" 
                                     class="img-fluid h-100 d-md-none" 
                                     style="object-fit: cover;">
                             </div>
@@ -42,7 +42,7 @@
                             </div>
                             <div class="d-block ms-auto mt-auto me-4">
                             {% if user.is_authenticated %}
-                                <form action="{% url 'rate_person' person.pk %}" method="post" class="mb-3">
+                                <form action="{% url 'rate_person' person.slug %}" method="post" class="mb-3">
                                     {% csrf_token %}
                                     <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off">
                                     <div class="input-group" style="width: 125px;">
@@ -127,7 +127,7 @@
                 <h5 class="card-title mb-4">Comments ({{ stats.total_comments }})</h5>
                 
                 {% if user.is_authenticated %}
-                    <form action="{% url 'add_comment' person.pk %}" method="post" class="mb-4">
+                    <form action="{% url 'add_comment' person.slug %}" method="post" class="mb-4">
                         {% csrf_token %}
                         <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off">
                         <div class="mb-3">
@@ -224,7 +224,7 @@
                 
                 {% if user == person.created_by %}
                     <div class="mt-3">
-                        <a href="{% url 'person_edit' person.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                        <a href="{% url 'person_edit' person.slug %}" class="btn btn-outline-primary btn-sm w-100">
                             <i class="bi bi-pencil"></i> Edit Person
                         </a>
                     </div>
@@ -234,7 +234,7 @@
                     <div class="mt-3">
                         <details>
                             <summary class="small text-danger" style="cursor: pointer;">Report this profile</summary>
-                            <form action="{% url 'report_person' person.pk %}" method="post" class="mt-2">
+                            <form action="{% url 'report_person' person.slug %}" method="post" class="mt-2">
                                 {% csrf_token %}
                                 <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off">
                                 <div class="mb-2">
@@ -283,7 +283,7 @@
                 <h5 class="card-title">Similar People</h5>
                 <div class="list-group list-group-flush">
                     {% for similar in similar_persons %}
-                        <a href="{% url 'person_detail' similar.pk %}" class="list-group-item list-group-item-action">
+                        <a href="{{ similar.get_absolute_url }}" class="list-group-item list-group-item-action">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="mb-1">{{ similar.name }}</h6>
