@@ -61,6 +61,10 @@ A Django-based web platform where users can rate and discuss about people, simil
 - Share favorite lists with other users
 - Get notifications about updates to favorite persons
 
+## Documentation
+
+- [Guide to Adding People](docs/ADDING_PEOPLE.md) - Learn how to properly add people to the platform, including image requirements, description guidelines, and tag usage.
+
 ## Tech Stack
 - Django 4.x
 - Bootstrap 5.x
