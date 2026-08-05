@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, OuterRef, Subquery, FloatField, IntegerField
+from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from .models import Person, Rating, Comment, UserProfile, Favorite, Collection, CollectionItem, Category
 from django.contrib.auth import login, logout
@@ -11,109 +12,173 @@ from django.views.generic import DetailView, UpdateView, ListView, CreateView, D
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 
+# Akıştaki sıralama seçenekleri. Anahtarlar URL'de ?sort= olarak görünür.
+FEED_SORTS = {
+    'hot': ('-comment_count', '-rating_count'),
+    'new': ('-created_at',),
+    'top': ('-avg_rating', '-rating_count'),
+    'discussed': ('-comment_count', '-created_at'),
+}
+DEFAULT_SORT = 'hot'
+
+
+def annotate_people(queryset):
+    """Listelerin ihtiyaç duyduğu sayaçları tek sorguda ekler.
+
+    Sayaçlar alt sorgu olarak yazıldı: dört ayrı çoklu JOIN yapılsaydı satırlar
+    kartezyen çarpıma girip hem sayılar bozulur hem sorgu şişerdi.
+    """
+    ratings = Rating.objects.filter(person=OuterRef('pk')).values('person')
+    comments = Comment.objects.filter(person=OuterRef('pk')).values('person')
+    favorites = Favorite.objects.filter(person=OuterRef('pk')).values('person')
+
+    return queryset.select_related('category', 'created_by').annotate(
+        avg_rating=Subquery(
+            ratings.annotate(value=Avg('score')).values('value'),
+            output_field=FloatField(),
+        ),
+        rating_count=Coalesce(
+            Subquery(ratings.annotate(value=Count('id')).values('value'), output_field=IntegerField()),
+            0,
+        ),
+        comment_count=Coalesce(
+            Subquery(comments.annotate(value=Count('id')).values('value'), output_field=IntegerField()),
+            0,
+        ),
+        favorite_count=Coalesce(
+            Subquery(favorites.annotate(value=Count('id')).values('value'), output_field=IntegerField()),
+            0,
+        ),
+    )
+
+
+def mark_favorites(request, people):
+    """Oturum açmış kullanıcının favorilerini işaretler (tek sorgu)."""
+    if not request.user.is_authenticated:
+        return people
+
+    favorite_ids = set(
+        request.user.profile.favorite_set.values_list('person_id', flat=True)
+    )
+    for person in people:
+        person.is_favorited_by_user = person.id in favorite_ids
+    return people
+
+
+def get_view_mode(request):
+    """Liste / kart tercihi. URL'den gelirse oturuma yazılır ve kalıcı olur."""
+    mode = request.GET.get('view')
+    if mode in ('list', 'card'):
+        request.session['person_view_mode'] = mode
+        return mode
+    return request.session.get('person_view_mode', 'list')
+
+
+def sidebar_categories():
+    return Category.objects.annotate(
+        person_count=Count('persons')
+    ).filter(person_count__gt=0).order_by('name')
+
+
 def logout_view(request):
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('home')
 
 def home(request):
-    # Get selected category
     category_id = request.GET.get('category')
     selected_category = None
-    
-    # Base querysets
-    persons_query = Person.objects
+
+    people = annotate_people(Person.objects.all())
     if category_id:
         try:
             selected_category = int(category_id)
-            persons_query = persons_query.filter(category_id=selected_category)
+            people = people.filter(category_id=selected_category)
         except (ValueError, TypeError):
             pass
-    
-    # Get trending persons
-    trending_persons = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=0).order_by('-rating_count')[:6]
-    
-    # Get recent persons
-    recent_persons = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).order_by('-created_at')[:6]
-    
-    # Get top rated persons
-    top_rated = persons_query.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=10).order_by('-avg_rating')[:6]
-    
-    # Get all categories
-    categories = Category.objects.annotate(
-        person_count=Count('persons')
-    ).filter(person_count__gt=0).order_by('name')
-    
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for persons in [trending_persons, recent_persons, top_rated]:
-            for person in persons:
-                person.is_favorited_by_user = person.id in user_favorites
-    
+
+    sort = request.GET.get('sort', DEFAULT_SORT)
+    if sort not in FEED_SORTS:
+        sort = DEFAULT_SORT
+    people = people.order_by(*FEED_SORTS[sort])
+
+    paginator = Paginator(people, 15)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    mark_favorites(request, page_obj.object_list)
+
+    # Sağ ray: en yüksek puanlılar, en az 5 oy almış olanlar arasından.
+    highest_rated = annotate_people(Person.objects.all()).filter(
+        rating_count__gte=5
+    ).order_by('-avg_rating')[:5]
+
     context = {
-        'trending_persons': trending_persons,
-        'recent_persons': recent_persons,
-        'top_rated': top_rated,
-        'categories': categories,
+        'page_obj': page_obj,
+        'categories': sidebar_categories(),
         'selected_category': selected_category,
+        'sort': sort,
+        'view_mode': get_view_mode(request),
+        'highest_rated': highest_rated,
+        'total_people': Person.objects.count(),
+        'total_comments': Comment.objects.count(),
+        'total_ratings': Rating.objects.count(),
+        'total_members': UserProfile.objects.count(),
     }
     return render(request, 'core/home.html', context)
 
 def person_list(request):
-    persons = Person.objects.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).order_by('-created_at')
-    
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for person in persons:
-            person.is_favorited_by_user = person.id in user_favorites
-    
-    paginator = Paginator(persons, 12)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    return render(request, 'core/person_list.html', {'page_obj': page_obj})
+    people = annotate_people(Person.objects.all()).order_by('-created_at')
+
+    paginator = Paginator(people, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    mark_favorites(request, page_obj.object_list)
+
+    return render(request, 'core/person_list.html', {
+        'page_obj': page_obj,
+        'view_mode': get_view_mode(request),
+        'categories': sidebar_categories(),
+    })
 
 def person_detail(request, pk):
-    person = get_object_or_404(Person, pk=pk)
+    person = get_object_or_404(
+        Person.objects.select_related('category', 'created_by'), pk=pk
+    )
+
     user_rating = None
+    is_favorited = False
     if request.user.is_authenticated:
         user_rating = Rating.objects.filter(person=person, user=request.user).first()
-    
-    comments = person.comments.order_by('-created_at')
-    paginator = Paginator(comments, 10)
-    page_number = request.GET.get('page')
-    comments_page = paginator.get_page(page_number)
-    
-    # Get statistics
+        is_favorited = Favorite.objects.filter(
+            user_profile=request.user.profile, person=person
+        ).exists()
+
+    comments = person.comments.select_related('user', 'user__profile').order_by('-created_at')
+    paginator = Paginator(comments, 20)
+    comments_page = paginator.get_page(request.GET.get('page'))
+
     stats = person.get_stats_summary()
-    rating_distribution = person.get_rating_distribution()
-    rating_trend = person.get_rating_trend(days=30)
-    demographics = person.get_demographics()
-    similar_persons = person.get_similar_persons(limit=6)
-    
+    distribution = person.get_rating_distribution()
+
+    # Dağılımı 10'dan 1'e doğru, eksik puanlar sıfır olacak şekilde düzleştir.
+    rating_rows = [
+        {
+            'score': score,
+            'count': distribution.get(score, {}).get('count', 0),
+            'percentage': distribution.get(score, {}).get('percentage', 0),
+        }
+        for score in range(10, 0, -1)
+    ]
+
     context = {
         'person': person,
         'user_rating': user_rating,
+        'is_favorited': is_favorited,
+        'rating_choices': range(10, 0, -1),
         'comments_page': comments_page,
         'stats': stats,
-        'rating_distribution': rating_distribution,
-        'rating_trend': rating_trend,
-        'demographics': demographics,
-        'similar_persons': similar_persons,
+        'rating_rows': rating_rows,
+        'rating_trend': person.get_rating_trend(days=30),
+        'demographics': person.get_demographics(),
+        'similar_persons': person.get_similar_persons(limit=6),
     }
     return render(request, 'core/person_detail.html', context)
 
@@ -150,21 +215,17 @@ def add_comment(request, pk):
     return redirect('person_detail', pk=pk)
 
 def top_rated(request):
-    persons = Person.objects.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    ).filter(rating_count__gt=100).order_by('-avg_rating')[:250]
-    
+    persons = annotate_people(Person.objects.all()).filter(
+        rating_count__gt=100
+    ).order_by('-avg_rating')[:250]
+
     return render(request, 'core/top_rated.html', {'persons': persons})
 
 def search(request):
     query = request.GET.get('q', '')
     form = AdvancedSearchForm(request.GET)
-    persons = Person.objects.annotate(
-        rating_count=Count('ratings'),
-        avg_rating=Avg('ratings__score')
-    )
-    
+    persons = annotate_people(Person.objects.all())
+
     if query:
         persons = persons.filter(
             Q(name__icontains=query) |
@@ -204,22 +265,16 @@ def search(request):
     if sort_by in ['-created_at', 'created_at', 'name', '-name', '-avg_rating', 'avg_rating', '-rating_count']:
         persons = persons.order_by(sort_by)
     
-    # Add favorite information for authenticated users
-    if request.user.is_authenticated:
-        user_favorites = set(request.user.profile.favorite_set.values_list('person_id', flat=True))
-        for person in persons:
-            person.is_favorited_by_user = person.id in user_favorites
-    
-    # Add pagination
-    paginator = Paginator(persons, 12)  # Show 12 persons per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
+    paginator = Paginator(persons, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    mark_favorites(request, page_obj.object_list)
+
     context = {
         'query': query,
         'form': form,
         'page_obj': page_obj,
-        'sort_by': sort_by
+        'sort_by': sort_by,
+        'view_mode': get_view_mode(request),
     }
     return render(request, 'core/search.html', context)
 

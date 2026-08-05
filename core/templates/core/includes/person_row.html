@@ -1,0 +1,62 @@
+{% comment %}
+Liste görünümündeki tek kişi satırı.
+Beklenen bağlam: `person` — avg_rating, rating_count, comment_count,
+favorite_count ile annotate edilmiş olmalı (bkz. views.annotate_people).
+{% endcomment %}
+<article class="pm-row" style="--pm-tagc: {{ person.category.color|default:'#69727a' }};">
+    <div class="pm-score">
+        {% if person.avg_rating %}
+            <div class="pm-score-val {% if person.avg_rating >= 7.5 %}is-high{% endif %}">{{ person.avg_rating|floatformat:1 }}</div>
+            <div class="pm-score-sub">{{ person.rating_count }} rating{{ person.rating_count|pluralize }}</div>
+        {% else %}
+            <div class="pm-score-val">&ndash;</div>
+            <div class="pm-score-sub">no ratings</div>
+        {% endif %}
+    </div>
+
+    <div class="pm-media">
+        {% if person.image %}
+            <img src="{{ person.get_image_url }}" alt="{{ person.name }}" loading="lazy">
+        {% else %}
+            <span class="pm-media-initials">{{ person.name|slice:":1"|upper }}</span>
+        {% endif %}
+    </div>
+
+    <div class="pm-row-body">
+        <h3 class="pm-row-title">
+            <a href="{% url 'person_detail' person.pk %}" class="pm-row-link">{{ person.name }}</a>
+            {% if person.comment_count > 20 %}<span class="pm-pill-hot">busy</span>{% endif %}
+        </h3>
+        <p class="pm-row-desc">{{ person.description|truncatewords:24 }}</p>
+        <div class="pm-row-meta">
+            {% if person.category %}
+                <span class="pm-tag"><span class="pm-cat-dot"></span>{{ person.category.name }}</span>
+            {% endif %}
+            <span>{{ person.created_by.username|default:"unknown" }}</span>
+            <span class="pm-sep">&middot;</span>
+            <span>added {{ person.created_at|timesince }} ago</span>
+        </div>
+    </div>
+
+    <div class="pm-row-right">
+        <span>
+            <span class="pm-count-num">{{ person.comment_count|default:0 }}</span>
+            <span class="pm-count-lbl">comments</span>
+        </span>
+        {% if user.is_authenticated %}
+            <button type="button"
+                    class="pm-act-btn favorite-btn {% if person.is_favorited_by_user %}is-on{% endif %}"
+                    data-person-id="{{ person.pk }}"
+                    data-is-favorite="{{ person.is_favorited_by_user|yesno:'true,false' }}"
+                    title="Add to favorites">
+                <i class="bi {% if person.is_favorited_by_user %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                <span class="favorite-count">{{ person.favorite_count|default:0 }}</span>
+            </button>
+        {% else %}
+            <span>
+                <span class="pm-count-num">{{ person.favorite_count|default:0 }}</span>
+                <span class="pm-count-lbl">favorites</span>
+            </span>
+        {% endif %}
+    </div>
+</article>

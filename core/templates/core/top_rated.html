@@ -7,55 +7,60 @@
 {% block meta_keywords %}top rated people, personmeter top 250, highest rated personalities, best rated profiles, popular personalities{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h1>Top 250 People</h1>
-    <p class="lead">The highest-rated people on Personmeter, based on user ratings. To be eligible, people must have at least 100 ratings.</p>
+<div class="pm-feed-head">
+    <h1 class="pm-h1">Top 250</h1>
 </div>
+<p class="pm-lead">The highest-rated people on Personmeter. A person needs at least 100 ratings to be eligible.</p>
 
-<div class="table-responsive">
-    <table class="table table-hover">
-        <thead class="table-dark">
+<div style="overflow-x: auto;">
+    <table class="pm-table">
+        <thead>
             <tr>
-                <th scope="col">#</th>
-                <th scope="col">Name</th>
-                <th scope="col" class="text-center">Rating</th>
-                <th scope="col" class="text-center">Ratings</th>
+                <th style="width: 56px;">#</th>
+                <th>Name</th>
+                <th style="width: 120px;">Rating</th>
+                <th style="width: 120px;">Ratings</th>
             </tr>
         </thead>
         <tbody>
             {% for person in persons %}
-                <tr>
-                    <td class="align-middle">{{ forloop.counter }}</td>
-                    <td class="align-middle">
-                        <a href="{% url 'person_detail' person.pk %}" class="text-decoration-none">
-                            {{ person.name }}
-                        </a>
-                        <div class="text-muted small">{{ person.description|truncatewords:20 }}</div>
+                <tr style="--pm-tagc: {{ person.category.color|default:'#69727a' }};">
+                    <td class="pm-rank">{{ forloop.counter }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: .75rem;">
+                            <div class="pm-media" style="width: 40px; height: 40px;">
+                                {% if person.image %}
+                                    <img src="{{ person.get_image_url }}" alt="{{ person.name }}" loading="lazy">
+                                {% else %}
+                                    <span class="pm-media-initials" style="font-size: .9rem;">{{ person.name|slice:":1"|upper }}</span>
+                                {% endif %}
+                            </div>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 600;">
+                                    <a href="{% url 'person_detail' person.pk %}">{{ person.name }}</a>
+                                </div>
+                                <div class="pm-row-meta">
+                                    {% if person.category %}
+                                        <span class="pm-tag"><span class="pm-cat-dot"></span>{{ person.category.name }}</span>
+                                    {% endif %}
+                                    <span>{{ person.description|truncatewords:14 }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </td>
-                    <td class="align-middle text-center">
-                        <span class="badge bg-primary fs-6">{{ person.avg_rating|floatformat:1 }}</span>
-                    </td>
-                    <td class="align-middle text-center">{{ person.rating_count }}</td>
+                    <td><span class="pm-score-val is-high">{{ person.avg_rating|floatformat:1 }}</span></td>
+                    <td class="pm-num">{{ person.rating_count }}</td>
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center py-4">
-                        <p class="mb-0">No people have received enough ratings yet to be featured in the Top 250.</p>
-                        <small class="text-muted">People need at least 100 ratings to be eligible.</small>
+                    <td colspan="4">
+                        <div class="pm-empty" style="border: none; background: none;">
+                            Nobody has enough ratings yet. A person needs 100 ratings to appear here.
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
-
-<div class="mt-4">
-    <h4>About the Top 250</h4>
-    <p>The Top 250 list is calculated using the following rules:</p>
-    <ul>
-        <li>Only people with at least 100 ratings are eligible</li>
-        <li>Rankings are based on the average rating (1-10 scale)</li>
-        <li>The list is updated regularly to reflect new ratings</li>
-    </ul>
-</div>
-{% endblock %} 
+{% endblock %}

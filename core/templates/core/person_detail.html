@@ -6,271 +6,215 @@
 
 {% block meta_keywords %}{{ person.name }}, personmeter profile, {{ person.category.name }}, person rating, {{ person.get_tags_list|join:", " }}, personality rating{% endblock %}
 
-{% block content %}
-<div class="row mt-3">
-    <div class="col-md-8">
-        <div class="card mb-4 border-dark-subtle overflow-hidden">
-            <div class="card-body p-0">
-                <div class="row g-0">
-                    <div class="col-md-3 col-lg-3 text-center d-flex d-md-block" style="min-height: 200px;">
-                        {% if person.image %}
-                            <img src="{{ person.get_image_url }}" alt="{{ person.name }}" 
-                                class="img-fluid h-100 d-none d-md-block position-absolute" 
-                                style="object-fit: cover; left: 0; top: 0;">
-                            <!-- Mobile-only version that's centered -->
-                            <div style="height: 200px; width: 100%;">
-                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" 
-                                    class="img-fluid h-100 d-md-none" 
-                                    style="object-fit: cover;">
-                            </div>
-                        {% else %}
-                            <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-9 col-lg-9 py-3 ps-3 ps-md-5">
-                        <h1 class="card-title mb-3">{{ person.name }}</h1>
-                        <p class="card-text lead">{{ person.description }}</p>
-                        <div class="d-flex">
-                            <div class="display-4 me-3 text-muted">
-                                <i class="bi bi-star-fill text-warning"></i>
-                            </div>
-                            <div class="d-block text-muted text-center">
-                                <div class="display-4" style="margin-bottom: -8px;">{{ stats.average_rating|floatformat:1 }}</div>
-                                <small>{{ stats.total_ratings }} ratings</small>
-                            </div>
-                            <div class="d-block ms-auto mt-auto me-4">
-                            {% if user.is_authenticated %}
-                                <form action="{% url 'rate_person' person.pk %}" method="post" class="mb-3">
-                                    {% csrf_token %}
-                                    <div class="input-group" style="width: 125px;">
-                                        <select name="score" class="form-select" required>
-                                            <option value=""></option>
-                                            {% for i in "123456789"|make_list %}
-                                                <option value="{{ i }}" {% if user_rating.score == i|add:"0" %}selected{% endif %}>{{ i }}</option>
-                                            {% endfor %}
-                                            <option value="10" {% if user_rating.score == 10 %}selected{% endif %}>10</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-primary">Rate</button>
-                                    </div>
-                                </form>
-                            {% else %}
-                                <p><a href="{% url 'login' %}">Log in</a> to rate this person.</p>
-                            {% endif %}
-                            </div>
-                        </div>
-                    </div>
+{% block page %}
+<main class="pm-shell" style="--pm-tagc: {{ person.category.color|default:'#69727a' }};">
+
+    <aside class="pm-rail pm-rail-left">
+        <div class="pm-card">
+            <div class="pm-card-head">Information</div>
+            <div class="pm-card-body" style="font-size: .85rem; display: flex; flex-direction: column; gap: .5rem;">
+                <div>
+                    <div class="pm-stat-lbl">Category</div>
+                    {% if person.category %}
+                        <a class="pm-tag" href="{% url 'home' %}?category={{ person.category.id }}">
+                            <span class="pm-cat-dot"></span>{{ person.category.name }}
+                        </a>
+                    {% else %}
+                        <span class="pm-muted">Uncategorized</span>
+                    {% endif %}
                 </div>
-            </div>
-        </div>
-        
-        <!-- Rating Statistics -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Rating Distribution</h5>
-                <!-- Rating Distribution -->
-                <div class="mb-4">
-                    {% for score, data in rating_distribution.items %}
-                        <div class="mb-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <small>{{ score }}</small>
-                                <small>{{ data.count }} rating{{ data.count|pluralize }}</small>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar" role="progressbar" 
-                                     style="width: {{ data.percentage }}%" 
-                                     aria-valuenow="{{ data.percentage }}" 
-                                     aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
 
-        <!-- Rating Trend -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Rating Trend (Last 30 Days)</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Average Rating</th>
-                                <th>Number of Ratings</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for day in rating_trend %}
-                                <tr>
-                                    <td>{{ day.created_at__date|date:"M j" }}</td>
-                                    <td>{{ day.avg_score|floatformat:1 }}</td>
-                                    <td>{{ day.count }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="3" class="text-center">No ratings in the last 30 days</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Comments Section -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title mb-4">Comments ({{ stats.total_comments }})</h5>
-                
-                {% if user.is_authenticated %}
-                    <form action="{% url 'add_comment' person.pk %}" method="post" class="mb-4">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <textarea name="content" class="form-control" rows="3" placeholder="Write your comment..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Comment</button>
-                    </form>
-                {% else %}
-                    <p><a href="{% url 'login' %}">Log in</a> to add a comment.</p>
-                {% endif %}
-
-                {% for comment in comments_page %}
-                    <div class="mb-3 ms-1 pb-3 border-bottom">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <strong>{{ comment.user.username }}</strong>
-                                <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
-                            </div>
-                        </div>
-                        <p class="mb-0 ms-2">{{ comment.content }}</p>
-                    </div>
-                {% empty %}
-                    <p>No comments yet.</p>
-                {% endfor %}
-
-                {% if comments_page.has_other_pages %}
-                    <nav aria-label="Comments pagination">
-                        <ul class="pagination justify-content-center">
-                            {% if comments_page.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ comments_page.previous_page_number }}">Previous</a>
-                                </li>
-                            {% endif %}
-
-                            {% for num in comments_page.paginator.page_range %}
-                                <li class="page-item {% if comments_page.number == num %}active{% endif %}">
-                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                </li>
-                            {% endfor %}
-
-                            {% if comments_page.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ comments_page.next_page_number }}">Next</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <!-- Basic Information -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Information</h5>
-                <p class="mb-1"><strong>Category:</strong> {{ person.category.name|default:"Uncategorized" }}</p>
                 {% if person.get_tags_list %}
-                    <p class="mb-1">
-                        <strong>Tags:</strong>
-                        {% for tag in person.get_tags_list %}
-                            <span class="badge bg-secondary me-1">{{ tag }}</span>
-                        {% endfor %}
-                    </p>
-                {% endif %}
-                <p class="mb-1"><strong>Added by:</strong> {{ person.created_by.username|default:"Unknown" }}</p>
-                <p class="mb-1"><strong>Added on:</strong> {{ person.created_at|date:"F j, Y" }}</p>
-                <p class="mb-0"><strong>Last updated:</strong> {{ person.updated_at|date:"F j, Y" }}</p>
-                
-                {% if user == person.created_by %}
-                    <div class="mt-3">
-                        <a href="{% url 'person_edit' person.pk %}" class="btn btn-outline-primary btn-sm w-100">
-                            <i class="bi bi-pencil"></i> Edit Person
-                        </a>
+                    <div>
+                        <div class="pm-stat-lbl">Tags</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .2rem;">
+                            {% for tag in person.get_tags_list %}
+                                <span class="pm-tag pm-tag-plain">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
+
+                <div>
+                    <div class="pm-stat-lbl">Added by</div>
+                    {{ person.created_by.username|default:"Unknown" }}
+                </div>
+                <div>
+                    <div class="pm-stat-lbl">Added</div>
+                    {{ person.created_at|date:"j F Y" }}
+                </div>
+                <div>
+                    <div class="pm-stat-lbl">Last updated</div>
+                    {{ person.updated_at|date:"j F Y" }}
+                </div>
             </div>
         </div>
+    </aside>
 
-        <!-- Demographics -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Demographics</h5>
-                
-                <h6 class="mt-3">Top Locations</h6>
-                <div class="list-group list-group-flush">
-                    {% for location in demographics.locations %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>{{ location.user__profile__location }}</div>
-                            <div class="text-end text-muted">
-                                <i class="bi bi-star-fill text-warning"></i> {{ location.avg_rating|floatformat:1 }}
-                                <small>({{ location.count }})</small>
-                            </div>
+    <section>
+        <div class="pm-crumbs">
+            <a href="{% url 'home' %}">Feed</a>
+            <span class="pm-sep">/</span>
+            {% if person.category %}
+                <a href="{% url 'home' %}?category={{ person.category.id }}">{{ person.category.name }}</a>
+                <span class="pm-sep">/</span>
+            {% endif %}
+            <span>{{ person.name }}</span>
+        </div>
+
+        <div class="pm-card pm-op">
+            <div class="pm-op-top">
+                <div class="pm-op-media">
+                    {% if person.image %}
+                        <img src="{{ person.get_image_url }}" alt="{{ person.name }}">
+                    {% else %}
+                        <span class="pm-op-initials">{{ person.name|slice:":1"|upper }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="pm-op-main">
+                    <h1 class="pm-op-name">{{ person.name }}</h1>
+                    <p class="pm-op-desc">{{ person.description }}</p>
+                    <div class="pm-op-meta">
+                        <span>added by <strong>{{ person.created_by.username|default:"unknown" }}</strong></span>
+                        <span class="pm-sep">&middot;</span>
+                        <span>{{ person.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+
+                <div class="pm-rate-block">
+                    <div class="pm-rate-big">{{ stats.average_rating|floatformat:1 }}</div>
+                    <div class="pm-rate-sub">{{ stats.total_ratings }} rating{{ stats.total_ratings|pluralize }}</div>
+                    {% if user.is_authenticated %}
+                        <form class="pm-rate-form" action="{% url 'rate_person' person.pk %}" method="post">
+                            {% csrf_token %}
+                            <select name="score" aria-label="Your rating" required>
+                                <option value="">Rate</option>
+                                {% for score in rating_choices %}
+                                    <option value="{{ score }}" {% if user_rating.score == score %}selected{% endif %}>{{ score }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="pm-btn">Rate</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="pm-btn pm-btn-ghost">Log in to rate</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if rating_rows %}
+                <div class="pm-dist">
+                    {% for row in rating_rows %}
+                        <div class="pm-dist-row">
+                            <span class="pm-dist-num">{{ row.score }}</span>
+                            <div class="pm-bar"><span style="width: {{ row.percentage|floatformat:0 }}%;"></span></div>
+                            <span class="pm-dist-num">{{ row.count }}</span>
                         </div>
-                    {% empty %}
-                        <p class="text-muted small">No location data available</p>
                     {% endfor %}
                 </div>
+            {% endif %}
+
+            <div style="margin-top: 1.1rem; padding-top: 1rem; border-top: 1px solid var(--pm-border);">
+                {% include 'core/includes/person_actions.html' %}
             </div>
         </div>
 
-        <!-- Similar Persons -->
-        <div class="card mb-4 border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Similar People</h5>
-                <div class="list-group list-group-flush">
-                    {% for similar in similar_persons %}
-                        <a href="{% url 'person_detail' similar.pk %}" class="list-group-item list-group-item-action">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">{{ similar.name }}</h6>
-                                    <small class="text-muted">{{ similar.common_raters }} common raters</small>
-                                </div>
-                                <div class="text-end text-muted">
-                                    <i class="bi bi-star-fill text-warning"></i> {{ similar.avg_rating|floatformat:1 }}
-                                </div>
-                            </div>
-                        </a>
-                    {% empty %}
-                        <p class="text-muted small">No similar people found</p>
-                    {% endfor %}
-                </div>
+        <div class="pm-posts-head">
+            <h2 class="pm-posts-title">{{ stats.total_comments }} comment{{ stats.total_comments|pluralize }}</h2>
+        </div>
+
+        {% if user.is_authenticated %}
+            <form class="pm-card pm-composer" action="{% url 'add_comment' person.pk %}" method="post">
+                {% csrf_token %}
+                <div class="pm-avatar">{{ user.username|slice:":1"|upper }}</div>
+                <textarea name="content" placeholder="Share what you think…" required></textarea>
+                <button type="submit" class="pm-btn" style="align-self: flex-end;">Post</button>
+            </form>
+        {% else %}
+            <div class="pm-empty">
+                <a href="{% url 'login' %}">Log in</a> to join the discussion.
+            </div>
+        {% endif %}
+
+        <div class="pm-posts">
+            {% for comment in comments_page %}
+                <article class="pm-card pm-post">
+                    <div class="pm-avatar">{{ comment.user.username|slice:":1"|upper }}</div>
+                    <div style="min-width: 0;">
+                        <div class="pm-post-head">
+                            <a class="pm-user" href="{% url 'user_profile' comment.user.profile.pk %}">{{ comment.user.username }}</a>
+                            {% if comment.user == person.created_by %}<span class="pm-badge">added this</span>{% endif %}
+                            <span class="pm-post-time">{{ comment.created_at|timesince }} ago</span>
+                        </div>
+                        <p class="pm-post-body">{{ comment.content }}</p>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="pm-empty">No comments yet. Be the first.</div>
+            {% endfor %}
+        </div>
+
+        {% if comments_page.has_other_pages %}
+            <nav class="pm-pagination" aria-label="Comments pagination">
+                {% if comments_page.has_previous %}
+                    <a class="pm-page" href="?page={{ comments_page.previous_page_number }}">&laquo;</a>
+                {% endif %}
+                {% for num in comments_page.paginator.page_range %}
+                    {% if comments_page.number == num %}
+                        <span class="pm-page is-active" aria-current="page">{{ num }}</span>
+                    {% elif num > comments_page.number|add:'-3' and num < comments_page.number|add:'3' %}
+                        <a class="pm-page" href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if comments_page.has_next %}
+                    <a class="pm-page" href="?page={{ comments_page.next_page_number }}">&raquo;</a>
+                {% endif %}
+            </nav>
+        {% endif %}
+    </section>
+
+    <aside class="pm-rail pm-rail-right">
+        <div class="pm-card">
+            <div class="pm-card-head">Similar people</div>
+            <div class="pm-card-body">
+                {% for similar in similar_persons %}
+                    <a class="pm-mini" href="{% url 'person_detail' similar.pk %}">
+                        <span class="pm-mini-name">{{ similar.name }}</span>
+                        <span class="pm-mini-val">{{ similar.avg_rating|floatformat:1 }}</span>
+                    </a>
+                {% empty %}
+                    <p class="pm-muted" style="font-size: .85rem; margin: 0;">No similar people found yet.</p>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Collections -->
-        <div class="card border-dark-subtle">
-            <div class="card-body">
-                <h5 class="card-title">Featured in Collections</h5>
-                <p class="text-muted small mb-3">
-                    Appears in {{ stats.total_collections }} public collection{{ stats.total_collections|pluralize }}
-                </p>
-                <div class="list-group list-group-flush">
-                    {% for collection in stats.recent_activity.collections %}
-                        <a href="{% url 'collection_detail' collection.pk %}" class="list-group-item list-group-item-action">
-                            <h6 class="mb-1">{{ collection.title }}</h6>
-                            <small class="text-muted">by {{ collection.created_by.username }}</small>
-                        </a>
-                    {% empty %}
-                        <p class="text-muted small">Not featured in any public collections</p>
+        {% if demographics.locations %}
+            <div class="pm-card">
+                <div class="pm-card-head">Where raters are</div>
+                <div class="pm-card-body">
+                    {% for location in demographics.locations %}
+                        <div class="pm-mini">
+                            <span class="pm-mini-name">{{ location.user__profile__location }}</span>
+                            <span class="pm-mini-val">{{ location.avg_rating|floatformat:1 }}</span>
+                        </div>
                     {% endfor %}
                 </div>
             </div>
+        {% endif %}
+
+        <div class="pm-card">
+            <div class="pm-card-head">In collections</div>
+            <div class="pm-card-body">
+                {% for collection in stats.recent_activity.collections %}
+                    <a class="pm-mini" href="{% url 'collection_detail' collection.pk %}">
+                        <span class="pm-mini-name">{{ collection.title }}</span>
+                    </a>
+                {% empty %}
+                    <p class="pm-muted" style="font-size: .85rem; margin: 0;">Not in any public collection.</p>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-</div>
-{% endblock %} 
+    </aside>
+
+</main>
+{% endblock %}

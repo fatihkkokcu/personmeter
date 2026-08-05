@@ -1,0 +1,45 @@
+{% comment %}
+Kart görünümündeki tek kişi. Satır bileşeniyle aynı bağlamı bekler.
+{% endcomment %}
+<article class="pm-person-card" style="--pm-tagc: {{ person.category.color|default:'#69727a' }};">
+    <div class="pm-portrait">
+        {% if person.image %}
+            <img src="{{ person.get_image_url }}" alt="{{ person.name }}" loading="lazy">
+        {% else %}
+            <span class="pm-portrait-initials">{{ person.name|slice:":1"|upper }}</span>
+        {% endif %}
+
+        {% if person.avg_rating %}
+            <span class="pm-portrait-score">
+                {{ person.avg_rating|floatformat:1 }}<small>{{ person.rating_count }} rating{{ person.rating_count|pluralize }}</small>
+            </span>
+        {% endif %}
+        {% if person.comment_count > 20 %}<span class="pm-portrait-hot">busy</span>{% endif %}
+    </div>
+
+    <div class="pm-person-body">
+        <h3 class="pm-person-name">
+            <a href="{% url 'person_detail' person.pk %}" class="pm-row-link">{{ person.name }}</a>
+        </h3>
+        {% if person.category %}
+            <div><span class="pm-tag"><span class="pm-cat-dot"></span>{{ person.category.name }}</span></div>
+        {% endif %}
+        <p class="pm-person-desc">{{ person.description|truncatewords:18 }}</p>
+    </div>
+
+    <div class="pm-person-foot">
+        <span>{{ person.comment_count|default:0 }} comment{{ person.comment_count|default:0|pluralize }}</span>
+        {% if user.is_authenticated %}
+            <button type="button"
+                    class="pm-act-btn pm-act-end favorite-btn {% if person.is_favorited_by_user %}is-on{% endif %}"
+                    data-person-id="{{ person.pk }}"
+                    data-is-favorite="{{ person.is_favorited_by_user|yesno:'true,false' }}"
+                    title="Add to favorites">
+                <i class="bi {% if person.is_favorited_by_user %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                <span class="favorite-count">{{ person.favorite_count|default:0 }}</span>
+            </button>
+        {% else %}
+            <span class="pm-act-end">{{ person.favorite_count|default:0 }} favorite{{ person.favorite_count|default:0|pluralize }}</span>
+        {% endif %}
+    </div>
+</article>

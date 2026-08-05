@@ -6,202 +6,109 @@
 
 {% block meta_keywords %}personmeter, rate people, trending personalities, top rated people, personality rating, profile rating, person collections, personality categories{% endblock %}
 
-{% block content %}
+{% block page %}
+<main class="pm-shell">
 
-<h1 class="display-4 mb-3">Rate people however you want</h1>
-<p class="lead mb-4">Don't waste any time to rate people, create collections and discover trending people</p>
-
-<div class="mb-4">
-    <div class="list-group list-group-horizontal overflow-x-auto" style="white-space: nowrap;">
-        <a href="{% url 'home' %}" class="list-group-item list-group-item-action border-dark-subtle {% if not selected_category %}active{% endif %} d-inline-block">
-            All Categories
-        </a>
-        {% for cat in categories %}
-            <a href="{% url 'home' %}?category={{ cat.id }}" 
-               class="list-group-item list-group-item-action border-dark-subtle {% if selected_category == cat.id %}active{% endif %} d-inline-block">
-                {{ cat.name }}
-            </a>
-        {% endfor %}
-    </div>
-</div>
-<div class="row mb-4">
-
-    <div class="col">
-        <h2 class="mb-4">Trending People</h2>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-5">
-            {% for person in trending_persons %}
-                <div class="col">
-                    <div class="card h-100 border-dark-subtle d-flex flex-column" style="overflow: hidden;">
-                        {% if person.image %}
-                            <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
-                            </div>
-                        {% else %}
-                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ person.name }}</h5>
-                            <p class="card-text text-muted">
-                                {% if person.avg_rating %}
-                                    <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
-                                    <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
-                                {% else %}
-                                    <small>No ratings yet</small>
-                                {% endif %}
-                            </p>
-                            <p class="card-text">{{ person.description|truncatewords:20 }}</p>
-                            {% if person.category %}
-                                <div class="mb-2 mt-auto">
-                                    <span class="badge bg-secondary">{{ person.category.name }}</span>
-                                </div>
-                            {% endif %}
-                            <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
-                            {% include 'core/includes/person_actions.html' %}
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col">
-                    <p>No trending people yet.</p>
-                </div>
-            {% endfor %}
+    <aside class="pm-rail pm-rail-left">
+        <div>
+            <div class="pm-rail-label">Categories</div>
+            <div class="pm-cat-list">
+                <a class="pm-cat {% if not selected_category %}is-active{% endif %}" href="{% url 'home' %}?sort={{ sort }}">
+                    <span class="pm-cat-dot" style="background: var(--pm-accent);"></span>All
+                </a>
+                {% for category in categories %}
+                    <a class="pm-cat {% if selected_category == category.id %}is-active{% endif %}"
+                       href="{% url 'home' %}?category={{ category.id }}&sort={{ sort }}">
+                        <span class="pm-cat-dot" style="background: {{ category.color }};"></span>
+                        {{ category.name }}
+                        <span class="pm-cat-count">{{ category.person_count }}</span>
+                    </a>
+                {% endfor %}
+            </div>
         </div>
 
-        <h2 class="mb-4">Recently Added</h2>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-5">
-            {% for person in recent_persons %}
-                <div class="col">
-                    <div class="card h-100 border-dark-subtle d-flex flex-column" style="overflow: hidden;">
-                        {% if person.image %}
-                            <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
-                            </div>
-                        {% else %}
-                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ person.name }}</h5>
-                            <p class="card-text text-muted">
-                                {% if person.avg_rating %}
-                                    <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
-                                    <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
-                                {% else %}
-                                    <small>No ratings yet</small>
-                                {% endif %}
-                            </p>
-                            <p class="card-text">{{ person.description|truncatewords:20 }}</p>
-                            {% if person.category %}
-                                <div class="mb-2 mt-auto">
-                                    <span class="badge bg-secondary">{{ person.category.name }}</span>
-                                </div>
-                            {% endif %}
-                            <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
-                            {% include 'core/includes/person_actions.html' %}
-                        </div>
-                    </div>
+        {% if user.is_authenticated %}
+            <div>
+                <div class="pm-rail-label">Yours</div>
+                <div class="pm-cat-list">
+                    <a class="pm-cat" href="{% url 'profile' %}">Favorites</a>
+                    <a class="pm-cat" href="{% url 'user_collections' %}">Collections</a>
+                    <a class="pm-cat" href="{% url 'person_create' %}">Add a person</a>
                 </div>
-            {% empty %}
-                <div class="col">
-                    <p>No people added yet.</p>
-                </div>
-            {% endfor %}
+            </div>
+        {% endif %}
+    </aside>
+
+    <section>
+        <div class="pm-feed-head">
+            <h1 class="pm-h1">Feed</h1>
+
+            <div class="pm-segment" role="group" aria-label="View">
+                <a class="pm-seg-btn {% if view_mode == 'list' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort={{ sort }}&view=list">List</a>
+                <a class="pm-seg-btn {% if view_mode == 'card' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort={{ sort }}&view=card">Cards</a>
+            </div>
+
+            <div class="pm-segment pm-sorts">
+                <a class="pm-seg-btn {% if sort == 'hot' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort=hot">Popular</a>
+                <a class="pm-seg-btn {% if sort == 'new' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort=new">New</a>
+                <a class="pm-seg-btn {% if sort == 'top' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort=top">Highest</a>
+                <a class="pm-seg-btn {% if sort == 'discussed' %}is-active{% endif %}"
+                   href="?{% if selected_category %}category={{ selected_category }}&{% endif %}sort=discussed">Discussed</a>
+            </div>
         </div>
 
-        <h2 class="mb-4">Top Rated</h2>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-4">
-            {% for person in top_rated %}
-                <div class="col">
-                    <div class="card h-100 border-dark-subtle d-flex flex-column" style="overflow: hidden;">
-                        {% if person.image %}
-                            <div style="position: relative; height: 200px; overflow: hidden;">
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
-                            </div>
-                        {% else %}
-                            <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                            </div>
-                        {% endif %}
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ person.name }}</h5>
-                            <p class="card-text text-muted">
-                                {% if person.avg_rating %}
-                                    <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
-                                    <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
-                                {% else %}
-                                    <small>No ratings yet</small>
-                                {% endif %}
-                            </p>
-                            <p class="card-text">{{ person.description|truncatewords:20 }}</p>
-                            {% if person.category %}
-                                <div class="mb-2 mt-auto">
-                                    <span class="badge bg-secondary">{{ person.category.name }}</span>
-                                </div>
-                            {% endif %}
-                            <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
-                            {% include 'core/includes/person_actions.html' %}
-                        </div>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="col">
-                    <p>No top rated people yet.</p>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
-{% endblock %}
+        {% if view_mode == 'card' %}
+            <div class="pm-cards">
+                {% for person in page_obj %}
+                    {% include 'core/includes/person_card.html' %}
+                {% empty %}
+                    <div class="pm-empty" style="grid-column: 1 / -1;">Nobody here yet. Be the first to add someone.</div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="pm-rows">
+                {% for person in page_obj %}
+                    {% include 'core/includes/person_row.html' %}
+                {% empty %}
+                    <div class="pm-empty">Nobody here yet. Be the first to add someone.</div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle favorite button clicks
-    document.querySelectorAll('.favorite-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const personId = this.dataset.personId;
-            const isFavorite = this.dataset.isFavorite === 'true';
-            
-            fetch(`/person/${personId}/favorite/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Update all buttons for the same person
-                document.querySelectorAll(`.favorite-btn[data-person-id="${personId}"]`).forEach(btn => {
-                    const btnIcon = btn.querySelector('i');
-                    const btnCountSpan = btn.querySelector('.favorite-count');
-                    
-                    if (data.is_favorite) {
-                        btnIcon.classList.remove('bi-heart');
-                        btnIcon.classList.add('bi-heart-fill');
-                        btn.dataset.isFavorite = 'true';
-                    } else {
-                        btnIcon.classList.remove('bi-heart-fill');
-                        btnIcon.classList.add('bi-heart');
-                        btn.dataset.isFavorite = 'false';
-                    }
-                    btnCountSpan.textContent = data.total_favorites;
-                });
-                
-                showToast(`${data.is_favorite ? 'Added to' : 'Removed from'} favorites`);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error updating favorite status', 'danger');
-            });
-        });
-    });
-});
-</script>
+        {% include 'core/includes/pagination.html' %}
+    </section>
+
+    <aside class="pm-rail pm-rail-right">
+        <div class="pm-card">
+            <div class="pm-card-head">Highest rated</div>
+            <div class="pm-card-body">
+                {% for person in highest_rated %}
+                    <a class="pm-mini" href="{% url 'person_detail' person.pk %}">
+                        <span class="pm-mini-rank">{{ forloop.counter }}</span>
+                        <span class="pm-mini-name">{{ person.name }}</span>
+                        <span class="pm-mini-val">{{ person.avg_rating|floatformat:1 }}</span>
+                    </a>
+                {% empty %}
+                    <p class="pm-muted" style="font-size: .85rem; margin: 0;">Not enough ratings yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="pm-card">
+            <div class="pm-card-head">Community</div>
+            <div class="pm-card-body pm-stats">
+                <div><div class="pm-stat-val">{{ total_people }}</div><div class="pm-stat-lbl">People</div></div>
+                <div><div class="pm-stat-val">{{ total_comments }}</div><div class="pm-stat-lbl">Comments</div></div>
+                <div><div class="pm-stat-val">{{ total_ratings }}</div><div class="pm-stat-lbl">Ratings</div></div>
+                <div><div class="pm-stat-val">{{ total_members }}</div><div class="pm-stat-lbl">Members</div></div>
+            </div>
+        </div>
+    </aside>
+
+</main>
 {% endblock %}

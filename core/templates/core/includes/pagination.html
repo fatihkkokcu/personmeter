@@ -1,45 +1,32 @@
+{% comment %}
+Sayfalama. Aktif filtreleri (arama, sıralama, kategori, görünüm) koruyarak
+bağlantı üretir; aksi halde sayfa değiştirince seçimler sıfırlanır.
+{% endcomment %}
 {% if page_obj.paginator.num_pages > 1 %}
-<nav aria-label="Page navigation" class="mt-4">
-    <ul class="pagination justify-content-center">
+    <nav class="pm-pagination" aria-label="Pagination">
         {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page=1" aria-label="First">
-                    <span aria-hidden="true">&laquo;&laquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
+            <a class="pm-page"
+               href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               aria-label="Previous">&laquo;</a>
         {% endif %}
 
         {% for num in page_obj.paginator.page_range %}
             {% if page_obj.number == num %}
-                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                <span class="pm-page is-active" aria-current="page">{{ num }}</span>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ num }}">{{ num }}</a>
-                </li>
+                <a class="pm-page"
+                   href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ num }}">{{ num }}</a>
             {% endif %}
         {% endfor %}
 
         {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-            <li class="page-item">
-                <a class="page-link" href="?{% if query %}q={{ query }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}page={{ page_obj.paginator.num_pages }}" aria-label="Last">
-                    <span aria-hidden="true">&raquo;&raquo;</span>
-                </a>
-            </li>
+            <a class="pm-page"
+               href="?{% if query %}q={{ query }}&{% endif %}{% if sort %}sort={{ sort }}&{% endif %}{% if sort_by %}sort={{ sort_by }}&{% endif %}{% if selected_category %}category={{ selected_category }}&{% endif %}page={{ page_obj.next_page_number }}"
+               aria-label="Next">&raquo;</a>
         {% endif %}
-    </ul>
-</nav>
+    </nav>
 
-<p class="text-center text-muted">
-    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
-</p>
-{% endif %} 
+    <p class="pm-page-info">
+        {{ page_obj.start_index }}&ndash;{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+    </p>
+{% endif %}

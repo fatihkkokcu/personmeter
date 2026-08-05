@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -15,8 +16,28 @@ from django.core.files import File
 # Create your models here.
 
 class Category(models.Model):
+    # Arayüzde kategori rengi etiketlere ve baş harf karolarına taşınır; renk
+    # dekoratif değil, kategoriyi kodlar. Açık/koyu temaya uyum CSS tarafında
+    # color-mix() ile yapılır, bu yüzden tek bir taban renk yeterli.
+    COLOR_CHOICES = [
+        ('#c2603f', 'Clay'),
+        ('#2e7d64', 'Pine'),
+        ('#3f6fa8', 'Denim'),
+        ('#7a5ea8', 'Iris'),
+        ('#b58224', 'Amber'),
+        ('#4a8090', 'Slate blue'),
+        ('#8a6a52', 'Walnut'),
+        ('#a8455f', 'Rose'),
+    ]
+
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
+    color = models.CharField(
+        max_length=7,
+        default='#69727a',
+        choices=COLOR_CHOICES,
+        help_text="Hex colour used for this category's tags and placeholders.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -128,10 +149,20 @@ class Person(models.Model):
         }
 
     def get_image_url(self):
-        """Get a presigned URL for the image using boto3"""
-        if self.image:
-            return get_s3_presigned_url(self.image.name)
-        return None
+        """Presigned URL for the image, cached so list pages don't sign per row.
+
+        Without the cache a 12-item listing signs 12 URLs on every request.
+        """
+        if not self.image:
+            return None
+
+        cache_key = f'person_image_url:{self.pk}:{self.image.name}'
+        url = cache.get(cache_key)
+        if url is None:
+            url = get_s3_presigned_url(self.image.name)
+            if url:
+                cache.set(cache_key, url, 60 * 30)
+        return url
 
     def __str__(self):
         return self.name

@@ -7,148 +7,65 @@
 
 {% block meta_keywords %}personmeter search, find people, rate people, search results{% if query %}, {{ query }}{% endif %}, personality search, profile search{% endblock %}
 
-{% block content %}
-<div class="container">
-    <div class="row">
-        <!-- Filters Sidebar -->
-        <div class="col-md-3 mb-4">
-            <div class="card border-dark-subtle">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Filters</h5>
-                    <form method="get" action="{% url 'search' %}" id="searchForm">
-                        {% if query %}
-                            <input type="hidden" name="q" value="{{ query }}">
-                        {% endif %}
-                        {{ form|crispy }}
-                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
-                    </form>
-                </div>
+{% block page %}
+<main class="pm-shell">
+
+    <aside class="pm-rail pm-rail-left">
+        <div class="pm-card">
+            <div class="pm-card-head">Filters</div>
+            <div class="pm-card-body">
+                <form method="get" action="{% url 'search' %}" id="searchForm">
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    {{ form|crispy }}
+                    <button type="submit" class="pm-btn" style="width: 100%; justify-content: center;">Apply</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <section>
+        <div class="pm-feed-head">
+            <h1 class="pm-h1">{% if query %}Results for &ldquo;{{ query }}&rdquo;{% else %}Search{% endif %}</h1>
+
+            <div class="pm-segment" role="group" aria-label="View">
+                <a class="pm-seg-btn {% if view_mode == 'list' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort={{ sort_by }}&view=list">List</a>
+                <a class="pm-seg-btn {% if view_mode == 'card' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort={{ sort_by }}&view=card">Cards</a>
+            </div>
+
+            <div class="pm-segment pm-sorts">
+                <a class="pm-seg-btn {% if sort_by == '-created_at' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort=-created_at">Newest</a>
+                <a class="pm-seg-btn {% if sort_by == '-avg_rating' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort=-avg_rating">Highest</a>
+                <a class="pm-seg-btn {% if sort_by == '-rating_count' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort=-rating_count">Most rated</a>
+                <a class="pm-seg-btn {% if sort_by == 'name' %}is-active{% endif %}"
+                   href="?{% if query %}q={{ query }}&{% endif %}sort=name">A&ndash;Z</a>
             </div>
         </div>
 
-        <!-- Search Results -->
-        <div class="col-md-9">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>Search Results{% if query %} for "{{ query }}"{% endif %}</h1>
-                <div class="dropdown">
-                    <button id="filterButton" class="btn btn-outline-dark dropdown-toggle border-dark-subtle" type="button" data-bs-toggle="dropdown" style="--bs-btn-hover-bg: #1E1E1E; --bs-btn-active-bg: #1E1E1E;">
-                        <span class="dropdown-text">
-                            {% if sort_by == '-created_at' %}Newest{% endif %}
-                            {% if sort_by == 'created_at' %}Oldest{% endif %}
-                            {% if sort_by == 'name' %}Name (A-Z){% endif %}
-                            {% if sort_by == '-name' %}Name (Z-A){% endif %}
-                            {% if sort_by == '-avg_rating' %}Highest Rated{% endif %}
-                            {% if sort_by == 'avg_rating' %}Lowest Rated{% endif %}
-                            {% if sort_by == '-rating_count' %}Most Rated{% endif %}
-                        </span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item {% if sort_by == '-created_at' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=-created_at">Newest</a></li>
-                        <li><a class="dropdown-item {% if sort_by == 'created_at' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=created_at">Oldest</a></li>
-                        <li><a class="dropdown-item {% if sort_by == 'name' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=name">Name (A-Z)</a></li>
-                        <li><a class="dropdown-item {% if sort_by == '-name' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=-name">Name (Z-A)</a></li>
-                        <li><a class="dropdown-item {% if sort_by == '-avg_rating' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=-avg_rating">Highest Rated</a></li>
-                        <li><a class="dropdown-item {% if sort_by == 'avg_rating' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=avg_rating">Lowest Rated</a></li>
-                        <li><a class="dropdown-item {% if sort_by == '-rating_count' %}active{% endif %}" 
-                            href="?{% if query %}q={{ query }}&{% endif %}sort=-rating_count">Most Rated</a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+        {% if view_mode == 'card' %}
+            <div class="pm-cards">
                 {% for person in page_obj %}
-                    <div class="col">
-                        <div class="card h-100 border-dark-subtle d-flex flex-column" style="overflow: hidden;">
-                            {% if person.image %}
-                                <div style="position: relative; height: 200px; overflow: hidden;">
-                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ person.get_image_url }}'); background-size: cover; background-position: center; filter: blur(12px);"></div>
-                                    <img src="{{ person.get_image_url }}" alt="{{ person.name }}" class="card-img-top" style="position: relative; height: 100%; object-fit: contain;">
-                                </div>
-                            {% else %}
-                                <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                                    <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                                </div>
-                            {% endif %}
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">{{ person.name }}</h5>
-                                <p class="card-text text-muted">
-                                    {% if person.avg_rating %}
-                                        <i class="bi bi-star-fill text-warning"></i> {{ person.avg_rating|floatformat:1 }}
-                                        <small>({{ person.rating_count }} rating{{ person.rating_count|pluralize }})</small>
-                                    {% else %}
-                                        <small>No ratings yet</small>
-                                    {% endif %}
-                                </p>
-                                <p class="card-text">{{ person.description|truncatewords:20 }}</p>
-                                {% if person.category %}
-                                    <div class="mb-2 mt-auto">
-                                        <span class="badge bg-secondary">{{ person.category.name }}</span>
-                                    </div>
-                                {% endif %}
-                                <a href="{% url 'person_detail' person.pk %}" class="btn btn-primary w-100 mb-2">View Profile</a>
-                                {% include 'core/includes/person_actions.html' %}
-                            </div>
-                        </div>
-                    </div>
+                    {% include 'core/includes/person_card.html' %}
                 {% empty %}
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            No results found{% if query %} for "{{ query }}"{% endif %}.
-                        </div>
-                    </div>
+                    <div class="pm-empty" style="grid-column: 1 / -1;">No results{% if query %} for &ldquo;{{ query }}&rdquo;{% endif %}.</div>
                 {% endfor %}
             </div>
+        {% else %}
+            <div class="pm-rows">
+                {% for person in page_obj %}
+                    {% include 'core/includes/person_row.html' %}
+                {% empty %}
+                    <div class="pm-empty">No results{% if query %} for &ldquo;{{ query }}&rdquo;{% endif %}.</div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-            {% include 'core/includes/pagination.html' %}
-        </div>
-    </div>
-</div>
+        {% include 'core/includes/pagination.html' %}
+    </section>
+
+</main>
 {% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle favorite button clicks
-    document.querySelectorAll('.favorite-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const personId = this.dataset.personId;
-            const isFavorite = this.dataset.isFavorite === 'true';
-            const icon = this.querySelector('i');
-            const countSpan = this.querySelector('.favorite-count');
-
-            fetch(`/person/${personId}/favorite/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.is_favorite) {
-                    icon.classList.remove('bi-heart');
-                    icon.classList.add('bi-heart-fill');
-                    this.dataset.isFavorite = 'true';
-                } else {
-                    icon.classList.remove('bi-heart-fill');
-                    icon.classList.add('bi-heart');
-                    this.dataset.isFavorite = 'false';
-                }
-                countSpan.textContent = data.total_favorites;
-                showToast(`${data.is_favorite ? 'Added to' : 'Removed from'} favorites`);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error updating favorite status', 'danger');
-            });
-        });
-    });
-});
-</script>
-{% endblock %} 
