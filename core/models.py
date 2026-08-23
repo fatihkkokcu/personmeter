@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.cache import cache
 from django.db import models
 from django.contrib.auth.models import User
@@ -155,6 +156,11 @@ class Person(models.Model):
         """
         if not self.image:
             return None
+
+        # Yerel geliştirmede depolama S3 değil; imzalanacak bir nesne yok ve
+        # dosya zaten MEDIA_URL üzerinden servis ediliyor.
+        if not settings.STORAGES['default']['BACKEND'].endswith('S3Storage'):
+            return self.image.url
 
         cache_key = f'person_image_url:{self.pk}:{self.image.name}'
         url = cache.get(cache_key)

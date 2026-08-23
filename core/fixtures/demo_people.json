@@ -1,0 +1,530 @@
+[
+  {
+    "model": "core.category",
+    "pk": 1,
+    "fields": {
+      "name": "Music",
+      "description": "Composers, singers and musicians.",
+      "color": "#a8455f",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 2,
+    "fields": {
+      "name": "Film & TV",
+      "description": "Directors, actors and screen storytellers.",
+      "color": "#7a5ea8",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 3,
+    "fields": {
+      "name": "Science",
+      "description": "Researchers who reshaped how we understand the world.",
+      "color": "#2e7d64",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 4,
+    "fields": {
+      "name": "Technology",
+      "description": "Engineers and pioneers of computing.",
+      "color": "#3f6fa8",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 5,
+    "fields": {
+      "name": "Sport",
+      "description": "Athletes and competitors.",
+      "color": "#c2603f",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 6,
+    "fields": {
+      "name": "Literature",
+      "description": "Novelists, poets and essayists.",
+      "color": "#8a6a52",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 7,
+    "fields": {
+      "name": "Art",
+      "description": "Painters, sculptors and visual artists.",
+      "color": "#b58224",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.category",
+    "pk": 8,
+    "fields": {
+      "name": "Public Life",
+      "description": "Leaders and activists who shaped public life.",
+      "color": "#4a8090",
+      "created_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 1,
+    "fields": {
+      "name": "Freddie Mercury",
+      "description": "Lead singer and songwriter of Queen, known for a four-octave vocal range and for writing 'Bohemian Rhapsody'. His 1985 Live Aid set is routinely voted the greatest live performance in rock history.",
+      "image": null,
+      "category": 1,
+      "tags": "rock, vocals, queen, british",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 2,
+    "fields": {
+      "name": "Beyonce Knowles",
+      "description": "Singer, songwriter and producer who went from Destiny's Child to one of the most awarded solo artists in music. Albums like 'Lemonade' and 'Renaissance' reshaped what a mainstream pop release can attempt.",
+      "image": null,
+      "category": 1,
+      "tags": "pop, r&b, performer, american",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 3,
+    "fields": {
+      "name": "Johann Sebastian Bach",
+      "description": "Baroque composer whose fugues, cantatas and the Well-Tempered Clavier became the grammar of Western music. Largely forgotten for decades after his death, then revived in the 19th century as a cornerstone of the canon.",
+      "image": null,
+      "category": 1,
+      "tags": "classical, baroque, composer, german",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 4,
+    "fields": {
+      "name": "Nina Simone",
+      "description": "Classically trained pianist who fused jazz, blues, gospel and classical into a style nobody has quite copied. Songs like 'Mississippi Goddam' turned her concerts into civil rights statements.",
+      "image": null,
+      "category": 1,
+      "tags": "jazz, soul, piano, civil rights",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 5,
+    "fields": {
+      "name": "Meryl Streep",
+      "description": "Actor with more Academy Award nominations than anyone in history, known for disappearing into accents and registers across four decades of film. Equally at home in 'Sophie's Choice' and 'The Devil Wears Prada'.",
+      "image": null,
+      "category": 2,
+      "tags": "acting, drama, american, oscars",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 6,
+    "fields": {
+      "name": "Akira Kurosawa",
+      "description": "Japanese director whose 'Seven Samurai', 'Rashomon' and 'Ikiru' rewrote film grammar for both Japan and the West. His staging and editing were openly borrowed by Hollywood for decades.",
+      "image": null,
+      "category": 2,
+      "tags": "directing, japanese, cinema, samurai",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 7,
+    "fields": {
+      "name": "Denzel Washington",
+      "description": "Actor and director known for controlled, intense performances in 'Malcolm X', 'Training Day' and 'Fences'. Also a serious stage presence, returning regularly to Broadway.",
+      "image": null,
+      "category": 2,
+      "tags": "acting, drama, american, theatre",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 8,
+    "fields": {
+      "name": "Hayao Miyazaki",
+      "description": "Co-founder of Studio Ghibli and director of 'Spirited Away', 'My Neighbor Totoro' and 'Princess Mononoke'. Known for hand-drawn detail and for refusing the tidy morality of most family animation.",
+      "image": null,
+      "category": 2,
+      "tags": "animation, japanese, studio ghibli, fantasy",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 9,
+    "fields": {
+      "name": "Marie Curie",
+      "description": "Physicist and chemist who discovered polonium and radium and coined the term radioactivity. The only person to win Nobel Prizes in two different sciences.",
+      "image": null,
+      "category": 3,
+      "tags": "physics, chemistry, radioactivity, polish",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 10,
+    "fields": {
+      "name": "Albert Einstein",
+      "description": "Theoretical physicist whose special and general relativity replaced Newtonian intuitions about space and time. His 1905 papers alone would have secured his place in the field.",
+      "image": null,
+      "category": 3,
+      "tags": "physics, relativity, german, theory",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 11,
+    "fields": {
+      "name": "Charles Darwin",
+      "description": "Naturalist whose 'On the Origin of Species' laid out evolution by natural selection, backed by two decades of collected evidence. It remains the organising idea of modern biology.",
+      "image": null,
+      "category": 3,
+      "tags": "biology, evolution, naturalist, british",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 12,
+    "fields": {
+      "name": "Katherine Johnson",
+      "description": "NASA mathematician whose orbital calculations were trusted enough that John Glenn asked her to verify the computer before his 1962 flight. Worked on Mercury, Apollo and the Space Shuttle programmes.",
+      "image": null,
+      "category": 3,
+      "tags": "mathematics, nasa, space, american",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 13,
+    "fields": {
+      "name": "Ada Lovelace",
+      "description": "Mathematician who wrote what is widely considered the first computer algorithm, for Babbage's Analytical Engine. Her notes anticipated that such machines could manipulate symbols, not just numbers.",
+      "image": null,
+      "category": 4,
+      "tags": "computing, mathematics, british, pioneer",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 14,
+    "fields": {
+      "name": "Alan Turing",
+      "description": "Mathematician who formalised computation with the Turing machine and helped break the Enigma cipher at Bletchley Park. His 1950 paper framed the question of machine intelligence still argued over today.",
+      "image": null,
+      "category": 4,
+      "tags": "computing, cryptography, british, ai",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 15,
+    "fields": {
+      "name": "Grace Hopper",
+      "description": "Computer scientist and US Navy rear admiral who built the first compiler and drove the design of COBOL. Argued for machine-independent programming languages when the idea sounded absurd.",
+      "image": null,
+      "category": 4,
+      "tags": "computing, compilers, cobol, american",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 16,
+    "fields": {
+      "name": "Linus Torvalds",
+      "description": "Created the Linux kernel in 1991 and later Git. Between them, most of the internet's servers and nearly all of modern software development run on his work.",
+      "image": null,
+      "category": 4,
+      "tags": "linux, git, open source, finnish",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 17,
+    "fields": {
+      "name": "Serena Williams",
+      "description": "Won 23 Grand Slam singles titles in the Open Era, more than any other player. Combined a dominant serve with a career longevity that spanned two decades at the top.",
+      "image": null,
+      "category": 5,
+      "tags": "tennis, american, grand slam, athlete",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 18,
+    "fields": {
+      "name": "Pele",
+      "description": "Brazilian forward who won three World Cups and scored over a thousand career goals. For much of the 20th century he was simply the reference point for what football excellence meant.",
+      "image": null,
+      "category": 5,
+      "tags": "football, brazilian, world cup, striker",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 19,
+    "fields": {
+      "name": "Muhammad Ali",
+      "description": "Three-time heavyweight champion whose footwork and speed changed how big men box. Refused the Vietnam draft at the peak of his career and lost years of it to the ban that followed.",
+      "image": null,
+      "category": 5,
+      "tags": "boxing, american, heavyweight, activism",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 20,
+    "fields": {
+      "name": "Simone Biles",
+      "description": "Gymnast with more World Championship medals than anyone in the sport's history and several skills named after her. Also reshaped the conversation about athlete mental health.",
+      "image": null,
+      "category": 5,
+      "tags": "gymnastics, american, olympics, athlete",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 21,
+    "fields": {
+      "name": "Virginia Woolf",
+      "description": "Modernist novelist and essayist behind 'Mrs Dalloway' and 'To the Lighthouse', writing consciousness as it actually moves. 'A Room of One's Own' remains a foundational text on women and writing.",
+      "image": null,
+      "category": 6,
+      "tags": "modernism, novels, british, essays",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 22,
+    "fields": {
+      "name": "Gabriel Garcia Marquez",
+      "description": "Colombian novelist whose 'One Hundred Years of Solitude' made magical realism a global literary mode. Won the Nobel Prize in Literature in 1982.",
+      "image": null,
+      "category": 6,
+      "tags": "magical realism, colombian, novels, nobel",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 23,
+    "fields": {
+      "name": "Fyodor Dostoevsky",
+      "description": "Russian novelist of 'Crime and Punishment' and 'The Brothers Karamazov', writing moral crisis from the inside. Much of 20th-century psychology and existentialism reads as a footnote to him.",
+      "image": null,
+      "category": 6,
+      "tags": "russian, novels, psychology, classics",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 24,
+    "fields": {
+      "name": "Chinua Achebe",
+      "description": "Nigerian novelist whose 'Things Fall Apart' told the story of colonial arrival from the Igbo side and became the most widely read African novel. Also a sharp critic of how the West wrote about Africa.",
+      "image": null,
+      "category": 6,
+      "tags": "nigerian, novels, postcolonial, classics",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 25,
+    "fields": {
+      "name": "Frida Kahlo",
+      "description": "Mexican painter known for unflinching self-portraits that worked through chronic pain, identity and politics. Her reputation grew far beyond the art world after her death.",
+      "image": null,
+      "category": 7,
+      "tags": "painting, mexican, portraits, surrealism",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 26,
+    "fields": {
+      "name": "Vincent van Gogh",
+      "description": "Dutch post-impressionist who produced around 2,100 works in roughly a decade, most of it in his final years. Sold almost nothing in his lifetime; now defines the popular image of the artist.",
+      "image": null,
+      "category": 7,
+      "tags": "painting, dutch, post-impressionism, colour",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 27,
+    "fields": {
+      "name": "Leonardo da Vinci",
+      "description": "Renaissance painter, engineer and anatomist behind the 'Mona Lisa' and 'The Last Supper'. His notebooks sketched flight, hydraulics and human anatomy centuries before the tools existed to test them.",
+      "image": null,
+      "category": 7,
+      "tags": "renaissance, painting, invention, italian",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 28,
+    "fields": {
+      "name": "Yayoi Kusama",
+      "description": "Japanese artist whose polka dots, nets and Infinity Rooms have run from 1960s New York happenings to record-breaking museum shows. Has worked from a psychiatric hospital by choice since 1977.",
+      "image": null,
+      "category": 7,
+      "tags": "installation, japanese, contemporary, polka dots",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 29,
+    "fields": {
+      "name": "Nelson Mandela",
+      "description": "Spent 27 years in prison for opposing apartheid, then negotiated its end and became South Africa's first democratically elected president. Chose reconciliation over retribution in a transition most expected to fail.",
+      "image": null,
+      "category": 8,
+      "tags": "south africa, activism, president, apartheid",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 30,
+    "fields": {
+      "name": "Mahatma Gandhi",
+      "description": "Led India's independence movement through mass nonviolent resistance, from the Salt March to nationwide civil disobedience. His methods were studied and reused by movements on every continent.",
+      "image": null,
+      "category": 8,
+      "tags": "india, nonviolence, independence, activism",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 31,
+    "fields": {
+      "name": "Rosa Parks",
+      "description": "Refused to give up her bus seat in Montgomery in 1955, triggering a 381-day boycott that broke segregation on the city's buses. A long-time NAACP organiser, not the accidental figure she is often reduced to.",
+      "image": null,
+      "category": 8,
+      "tags": "civil rights, american, activism, montgomery",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  },
+  {
+    "model": "core.person",
+    "pk": 32,
+    "fields": {
+      "name": "Malala Yousafzai",
+      "description": "Campaigned for girls' education in Pakistan, survived being shot for it at 15, and became the youngest Nobel Peace Prize laureate. Continues the work through the Malala Fund.",
+      "image": null,
+      "category": 8,
+      "tags": "education, pakistan, activism, nobel",
+      "created_by": null,
+      "created_at": "2026-01-05T09:00:00Z",
+      "updated_at": "2026-01-05T09:00:00Z"
+    }
+  }
+]

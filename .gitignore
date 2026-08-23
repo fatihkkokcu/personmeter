@@ -2,3 +2,7 @@
 db.sqlite3
 __pycache__
 person_images/
+
+.venv/
+media/
+.demo_image_cache/

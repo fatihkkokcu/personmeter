@@ -1,0 +1,226 @@
+[
+  {
+    "name": "Freddie Mercury",
+    "wikipedia": "https://en.wikipedia.org/wiki/Freddie_Mercury",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Freddie_Mercury_performing_in_New_Haven%2C_CT%2C_November_1977.jpg/960px-Freddie_Mercury_performing_in_New_Haven%2C_CT%2C_November_1977.jpg",
+    "license": "CC BY-SA 3.0",
+    "credit": "Carl Lender"
+  },
+  {
+    "name": "Beyonce Knowles",
+    "wikipedia": "https://en.wikipedia.org/wiki/Beyonc%C3%A9",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Beyonc%C3%A9_-_Tottenham_Hotspur_Stadium_-_1st_June_2023_%2810_of_118%29_%2852946364598%29_%28best_crop%29.jpg",
+    "license": "CC BY 2.0",
+    "credit": "Raph_PH"
+  },
+  {
+    "name": "Johann Sebastian Bach",
+    "wikipedia": "https://en.wikipedia.org/wiki/Johann_Sebastian_Bach",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Johann_Sebastian_Bach.jpg/960px-Johann_Sebastian_Bach.jpg",
+    "license": "Public domain",
+    "credit": "Elias Gottlob Haussmann"
+  },
+  {
+    "name": "Nina Simone",
+    "wikipedia": "https://en.wikipedia.org/wiki/Nina_Simone",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Nina_Simone_-1969.jpg/960px-Nina_Simone_-1969.jpg",
+    "license": "CC BY 4.0",
+    "credit": "Gerrit de Bruin"
+  },
+  {
+    "name": "Meryl Streep",
+    "wikipedia": "https://en.wikipedia.org/wiki/Meryl_Streep",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Meryl_Streep-_Press_conference_for_the_film_%22The_Devil_Wears_Prada_2%22_-_55194765350_%28cropped1%29.jpg/960px-Meryl_Streep-_Press_conference_for_the_film_%22The_Devil_Wears_Prada_2%22_-_55194765350_%28cropped1%29.jpg",
+    "license": "CC BY-SA 4.0",
+    "credit": "Ministry of culture, sports and Tourism- Lee Jeong-woo"
+  },
+  {
+    "name": "Akira Kurosawa",
+    "wikipedia": "https://en.wikipedia.org/wiki/Akira_Kurosawa",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Akirakurosawa-onthesetof7samurai-1953-page88.jpg/960px-Akirakurosawa-onthesetof7samurai-1953-page88.jpg",
+    "license": "Public domain",
+    "credit": "映画の友 (Eiga no tomo)"
+  },
+  {
+    "name": "Denzel Washington",
+    "wikipedia": "https://en.wikipedia.org/wiki/Denzel_Washington",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Denzel_Washington_at_the_2025_Cannes_Film_Festival.jpg/960px-Denzel_Washington_at_the_2025_Cannes_Film_Festival.jpg",
+    "license": "CC BY-SA 4.0",
+    "credit": "Gabriel Hutchinson"
+  },
+  {
+    "name": "Hayao Miyazaki",
+    "wikipedia": "https://en.wikipedia.org/wiki/Hayao_Miyazaki",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/HayaoMiyazakiCCJuly09.jpg",
+    "license": "CC BY 2.0",
+    "credit": "Natasha Baucas at https://www.flickr.com/photos/sdnatasha/"
+  },
+  {
+    "name": "Marie Curie",
+    "wikipedia": "https://en.wikipedia.org/wiki/Marie_Curie",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Marie_Curie_c._1920s.jpg/960px-Marie_Curie_c._1920s.jpg",
+    "license": "Public domain",
+    "credit": "Henri Manuel"
+  },
+  {
+    "name": "Albert Einstein",
+    "wikipedia": "https://en.wikipedia.org/wiki/Albert_Einstein",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Albert_Einstein_Head_cleaned.jpg/960px-Albert_Einstein_Head_cleaned.jpg",
+    "license": "Public domain",
+    "credit": "Oren Jack Turner"
+  },
+  {
+    "name": "Charles Darwin",
+    "wikipedia": "https://en.wikipedia.org/wiki/Charles_Darwin",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Charles_Darwin_seated_crop.jpg/960px-Charles_Darwin_seated_crop.jpg",
+    "license": "Public domain",
+    "credit": "Charles_Darwin_seated.jpg : Henry Maull (1829–1914) and John Fox (1832–1907) (Maull &amp; Fox) [ 3 ] derivative work: Be"
+  },
+  {
+    "name": "Katherine Johnson",
+    "wikipedia": "https://en.wikipedia.org/wiki/Katherine_Johnson",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Katherine_Johnson_1983.jpg/960px-Katherine_Johnson_1983.jpg",
+    "license": "Public domain",
+    "credit": "NASA"
+  },
+  {
+    "name": "Ada Lovelace",
+    "wikipedia": "https://en.wikipedia.org/wiki/Ada_Lovelace",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Ada_Lovelace_daguerreotype_by_Antoine_Claudet_1843_-_cropped.png",
+    "license": "Public domain",
+    "credit": "Antoine Claudet"
+  },
+  {
+    "name": "Alan Turing",
+    "wikipedia": "https://en.wikipedia.org/wiki/Alan_Turing",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Alan_turing_header.jpg",
+    "license": "Public domain",
+    "credit": "Elliott &amp; Fry"
+  },
+  {
+    "name": "Grace Hopper",
+    "wikipedia": "https://en.wikipedia.org/wiki/Grace_Hopper",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Commodore_Grace_M._Hopper%2C_USN_%28covered%29_head_and_shoulders_crop.jpg/960px-Commodore_Grace_M._Hopper%2C_USN_%28covered%29_head_and_shoulders_crop.jpg",
+    "license": "Public domain",
+    "credit": "James S. Davis"
+  },
+  {
+    "name": "Linus Torvalds",
+    "wikipedia": "https://en.wikipedia.org/wiki/Linus_Torvalds",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg/960px-LinuxCon_Europe_Linus_Torvalds_03_%28cropped%29.jpg",
+    "license": "CC BY-SA 4.0",
+    "credit": "Krd (photo) Von Sprat (crop/extraction)"
+  },
+  {
+    "name": "Serena Williams",
+    "wikipedia": "https://en.wikipedia.org/wiki/Serena_Williams",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Guests_at_the_2026_Met_Gala_209_%28cropped%29.jpg",
+    "license": "CC BY 4.0",
+    "credit": "SWinxy"
+  },
+  {
+    "name": "Pele",
+    "wikipedia": "https://en.wikipedia.org/wiki/Pel%C3%A9",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Pele_con_brasil_%28cropped%29.jpg",
+    "license": "Public domain",
+    "credit": "Unknown author Unknown author"
+  },
+  {
+    "name": "Muhammad Ali",
+    "wikipedia": "https://en.wikipedia.org/wiki/Muhammad_Ali",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Muhammad_Ali_NYWTS.jpg/960px-Muhammad_Ali_NYWTS.jpg",
+    "license": "Public domain",
+    "credit": "Ira Rosenberg"
+  },
+  {
+    "name": "Simone Biles",
+    "wikipedia": "https://en.wikipedia.org/wiki/Simone_Biles",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Simone_Biles_National_Team_2024.jpg/960px-Simone_Biles_National_Team_2024.jpg",
+    "license": "CC BY-SA 4.0",
+    "credit": "Ocoudis"
+  },
+  {
+    "name": "Virginia Woolf",
+    "wikipedia": "https://en.wikipedia.org/wiki/Virginia_Woolf",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/George_Charles_Beresford_-_Virginia_Woolf_in_1902_-_Restoration.jpg/960px-George_Charles_Beresford_-_Virginia_Woolf_in_1902_-_Restoration.jpg",
+    "license": "Public domain",
+    "credit": "George Charles Beresford / Adam Cuerden"
+  },
+  {
+    "name": "Gabriel Garcia Marquez",
+    "wikipedia": "https://en.wikipedia.org/wiki/Gabriel_Garc%C3%ADa_M%C3%A1rquez",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Gabriel_Garcia_Marquez.jpg",
+    "license": "CC BY-SA 2.0",
+    "credit": "Jose Lara"
+  },
+  {
+    "name": "Fyodor Dostoevsky",
+    "wikipedia": "https://en.wikipedia.org/wiki/Fyodor_Dostoevsky",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Vasily_Perov_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%A4.%D0%9C.%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_-_Google_Art_Project.jpg/960px-Vasily_Perov_-_%D0%9F%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82_%D0%A4.%D0%9C.%D0%94%D0%BE%D1%81%D1%82%D0%BE%D0%B5%D0%B2%D1%81%D0%BA%D0%BE%D0%B3%D0%BE_-_Google_Art_Project.jpg",
+    "license": "Public domain",
+    "credit": "Vasily Perov"
+  },
+  {
+    "name": "Chinua Achebe",
+    "wikipedia": "https://en.wikipedia.org/wiki/Chinua_Achebe",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Chinua_Achebe%2C_1966.jpg/960px-Chinua_Achebe%2C_1966.jpg",
+    "license": "Public domain",
+    "credit": "Carlo Bavagnoli"
+  },
+  {
+    "name": "Frida Kahlo",
+    "wikipedia": "https://en.wikipedia.org/wiki/Frida_Kahlo",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/960px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg",
+    "license": "Public domain",
+    "credit": "Guillermo Kahlo"
+  },
+  {
+    "name": "Vincent van Gogh",
+    "wikipedia": "https://en.wikipedia.org/wiki/Vincent_van_Gogh",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg/960px-Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg",
+    "license": "Public domain",
+    "credit": "Vincent van Gogh"
+  },
+  {
+    "name": "Leonardo da Vinci",
+    "wikipedia": "https://en.wikipedia.org/wiki/Leonardo_da_Vinci",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Francesco_Melzi_-_Portrait_of_Leonardo.png/960px-Francesco_Melzi_-_Portrait_of_Leonardo.png",
+    "license": "Public domain",
+    "credit": "Attributed to Francesco Melzi"
+  },
+  {
+    "name": "Yayoi Kusama",
+    "wikipedia": "https://en.wikipedia.org/wiki/Yayoi_Kusama",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/6/69/20130918Yayoi_Kusama1_%28cropped%29.jpg",
+    "license": "CC BY 4.0",
+    "credit": "内閣官房内閣広報室"
+  },
+  {
+    "name": "Nelson Mandela",
+    "wikipedia": "https://en.wikipedia.org/wiki/Nelson_Mandela",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/960px-Nelson_Mandela_1994.jpg",
+    "license": "CC BY-SA 2.0",
+    "credit": "Kingkongphoto &amp; www.celebrity-photos.com from Laurel"
+  },
+  {
+    "name": "Mahatma Gandhi",
+    "wikipedia": "https://en.wikipedia.org/wiki/Mahatma_Gandhi",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Mahatma-Gandhi%2C_studio%2C_1931.jpg/960px-Mahatma-Gandhi%2C_studio%2C_1931.jpg",
+    "license": "Public domain",
+    "credit": "Elliott &amp; Fry"
+  },
+  {
+    "name": "Rosa Parks",
+    "wikipedia": "https://en.wikipedia.org/wiki/Rosa_Parks",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Rosa_Parks%2C_November_1956_%28cropped%29.jpg/960px-Rosa_Parks%2C_November_1956_%28cropped%29.jpg",
+    "license": "Public domain",
+    "credit": "Unknown author Unknown author"
+  },
+  {
+    "name": "Malala Yousafzai",
+    "wikipedia": "https://en.wikipedia.org/wiki/Malala_Yousafzai",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Malala_Yousafzai_2023_portrait_2x3.jpg/960px-Malala_Yousafzai_2023_portrait_2x3.jpg",
+    "license": "CC BY 2.0",
+    "credit": "flowcomm"
+  }
+]
